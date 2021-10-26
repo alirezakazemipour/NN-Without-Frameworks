@@ -1,6 +1,5 @@
-import numpy as np
-
 from api.python import nn_numpy as nn
+import numpy as np
 
 
 class MyNet(nn.Module):
@@ -23,7 +22,15 @@ class MyNet(nn.Module):
         return self.output(x)
 
 
-my_net = MyNet(5)
-input = np.ones((1, 5))
-output = my_net(input)
-print(input, output)
+np.random.seed(1)
+x = np.linspace(-1, 1, 200)[:, None]       # [batch, 1]
+t = x ** 2 + np.random.normal(0., 0.1, (200, 1))     # [batch, 1]
+
+my_net = MyNet(1)
+mse = nn.losses.MSELoss()
+opt = nn.optims.SGD(my_net.parameters, 0.001)
+for epoch in range(100):
+    y = my_net(x)
+    loss = mse(y, t)
+    my_net.backward(loss)
+    opt.apply()

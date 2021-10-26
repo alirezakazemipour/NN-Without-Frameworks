@@ -53,5 +53,7 @@ class Dense(ParamLayer, ABC):
         a = self.act(z)
         return a
 
+    def backward(self, x):
+        
     def __call__(self, x):
         return self.forward(x)

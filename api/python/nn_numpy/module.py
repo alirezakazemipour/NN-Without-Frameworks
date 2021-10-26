@@ -12,6 +12,10 @@ class Module:
     def forward(self, x):
         raise NotImplementedError
 
+    @property
+    def parameters(self):
+        return self._parameters
+
     def __setattr__(self, key, value):
         if isinstance(value, nn.layers.Layer):
             layer = value
