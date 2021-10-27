@@ -1,6 +1,6 @@
 from abc import ABC
 import numpy as np
-import api.python.nn_numpy as nn
+import api.python.numpy_nn as nn
 
 
 class Layer:

@@ -1,5 +1,4 @@
-import api.python.nn_numpy as nn
-import numpy as np
+import api.python.numpy_nn as nn
 
 
 class Module:

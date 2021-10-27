@@ -1,6 +1,6 @@
-from api.python import nn_numpy as nn
-import numpy as np
+from api.python import pure_nn as nn
 import matplotlib.pyplot as plt
+import random
 
 
 class MyNet(nn.Module):
@@ -24,19 +24,22 @@ class MyNet(nn.Module):
         return self.output(x)
 
 
-np.random.seed(1)
-x = np.linspace(-1, 1, 256)[:, None]  # [batch, 1]
-t = x ** 2 + np.random.normal(0., 0.1, (256, 1))  # [batch, 1]
+random.seed(1)
+x = [[0.01 * i] for i in range(-100, 100)]
+t = [k[0] ** 2 + random.gauss(0, 0.1) for k in x]
 
 my_net = MyNet(1)
-mse = nn.losses.MSELoss()
+# mse = nn.losses.MSELoss()
 opt = nn.optims.SGD(my_net.parameters, 0.2)
 for epoch in range(1000):
     y = my_net(x)
-    loss = mse(y, t)
-    my_net.backward(loss)
-    opt.apply()
-    print("Step: %i | loss: %.5f" % (epoch, loss.value))
+    print(y)
+    print(len(y))
+    input()
+    # loss = mse(y, t)
+    # my_net.backward(loss)
+    # opt.apply()
+    # print("Step: %i | loss: %.5f" % (epoch, loss.value))
 
 plt.scatter(x, t, s=20)
 plt.plot(x, y, c="red", lw=3)
