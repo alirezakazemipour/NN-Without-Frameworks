@@ -9,7 +9,7 @@ class MyNet(nn.Module):
         self.input_dim = input_dim
         self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
                                        out_features=10,
-                                       activation=nn.acts.Tanh(),
+                                       activation=nn.acts.ReLU(),
                                        weight_initializer=nn.inits.RandomUniform(),
                                        bias_initializer=nn.inits.Constant(0.)
                                        )
@@ -30,7 +30,7 @@ t = x ** 2 + np.random.normal(0., 0.1, (256, 1))  # [batch, 1]
 
 my_net = MyNet(1)
 mse = nn.losses.MSELoss()
-opt = nn.optims.SGD(my_net.parameters, 0.1)
+opt = nn.optims.SGD(my_net.parameters, 0.2)
 for epoch in range(1000):
     y = my_net(x)
     loss = mse(y, t)
