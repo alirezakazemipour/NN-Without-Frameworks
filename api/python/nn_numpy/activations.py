@@ -27,3 +27,11 @@ class ReLU(Activation, ABC):
 
     def derivative(self, x):
         return np.where(x > 0, np.ones_like(x), np.zeros_like(x))
+
+
+class Tanh(Activation, ABC):
+    def forward(self, x):
+        return np.tanh(x)
+
+    def derivative(self, x):
+        return 1 - self.forward(x) ** 2

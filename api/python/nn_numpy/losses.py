@@ -10,7 +10,7 @@ class Loss:
 
 
 class LossFunc:
-    def __init__(self, pred, target):
+    def __init__(self, pred=None, target=None):
         self.pred = pred
         self.target = target
 

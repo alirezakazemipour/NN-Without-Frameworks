@@ -13,7 +13,7 @@ class Constant(Initializer, ABC):
         self._c = c
 
     def initialize(self, x):
-        return np.full_like(x, self._c)
+        return self._c * np.ones(x)
 
 
 class RandomUniform(Initializer, ABC):

@@ -21,11 +21,13 @@ class ParamLayer(Layer, ABC):
                  bias_initializer):
         super().__init__()
 
-        self.w = weight_initializer.initialize(weight_shape)
-        self.b = bias_initializer.initialize(weight_shape[1])
+        self.vars["W"] = weight_initializer.initialize(weight_shape)
+        self.vars["b"] = bias_initializer.initialize((weight_shape[1], ))
+        self.vars["dW"] = np.zeros(weight_shape)
+        self.vars["db"] = np.zeros((weight_shape[1], ))
 
-        self.vars["W"] = self.w
-        self.vars["b"] = self.b
+        self.z = None
+        self.input = None
 
 
 class Dense(ParamLayer, ABC):
@@ -49,11 +51,18 @@ class Dense(ParamLayer, ABC):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
-        z = x.dot(self.w) + self.b
+        self.input = x
+        z = x.dot(self.vars["W"]) + self.vars["b"]
+        self.z = z
         a = self.act(z)
         return a
 
-    def backward(self, x):
-        
+    def backward(self, delta):
+        dz = delta * self.act.derivative(self.z)
+        self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
+        self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
+        delta = dz.dot(self.vars["W"].T)
+        return delta
+
     def __call__(self, x):
         return self.forward(x)
