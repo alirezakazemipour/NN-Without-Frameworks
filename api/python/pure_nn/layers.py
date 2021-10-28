@@ -4,6 +4,10 @@ from .utils import mat_mul, mat_add, element_wise_mul, transpose, rescale
 from copy import deepcopy
 
 
+def supported_layers():
+    return [x.__name__ for x in ParamLayer.__subclasses__()]
+
+
 class Layer:
     def __init__(self):
         self.vars = {}
@@ -64,7 +68,8 @@ class Dense(ParamLayer, ABC):
         return a
 
     def backward(self, delta):
-        dz = element_wise_mul(delta, self.act.derivative(self.z), len(delta), self.out_features, len(delta), self.out_features)
+        dz = element_wise_mul(delta, self.act.derivative(self.z), len(delta), self.out_features, len(delta),
+                              self.out_features)
         input_t = transpose(self.input, len(self.input), self.in_features)
         dw_unscale = mat_mul(input_t, dz, self.in_features, len(self.input), len(delta), self.out_features)
         self.vars["dW"] = rescale(dw_unscale, self.in_features, self.out_features, 1 / len(dz))

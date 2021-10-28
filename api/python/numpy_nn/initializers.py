@@ -3,6 +3,10 @@ from abc import ABC
 import numpy as np
 
 
+def supported_initializers():
+    return [x.__name__ for x in Initializer.__subclasses__()]
+
+
 class Initializer:
     def initialize(self, x):
         raise NotImplementedError

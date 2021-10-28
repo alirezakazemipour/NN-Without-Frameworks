@@ -9,7 +9,7 @@ class MyNet(nn.Module):
         self.input_dim = input_dim
         self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
                                        out_features=10,
-                                       activation=nn.acts.ReLU(),
+                                       activation=nn.acts.Tanh(),
                                        weight_initializer=nn.inits.RandomUniform(),
                                        bias_initializer=nn.inits.Constant(0.1)
                                        )

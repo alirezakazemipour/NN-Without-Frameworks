@@ -2,6 +2,10 @@ from abc import ABC
 import numpy as np
 
 
+def supported_activations():
+    return [x.__name__ for x in Activation.__subclasses__()]
+
+
 class Activation:
     def __call__(self, x):
         return self.forward(x)

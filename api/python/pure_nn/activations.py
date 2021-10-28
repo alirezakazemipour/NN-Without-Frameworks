@@ -2,6 +2,10 @@ from abc import ABC
 import math
 
 
+def supported_activations():
+    return [x.__name__ for x in Activation.__subclasses__()]
+
+
 class Activation:
     def __call__(self, x):
         return self.forward(x)
@@ -49,8 +53,8 @@ class ReLU(Activation, ABC):
 
 class Tanh(Activation, ABC):
     def forward(self, x):
-        assert len(x.shape) == 2
-        w, h = x.shape
+        assert len(x) > 0
+        w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):
             for j in range(h):
@@ -59,5 +63,8 @@ class Tanh(Activation, ABC):
 
     def derivative(self, x):
         temp = self.forward(x)
-        return [1 - j ** 2 for k in temp for j in k]
-
+        x = [[] for _ in range(len(temp))]
+        for i, k in enumerate(temp):
+            for j in k:
+                x[i].append(1 - j ** 2)
+        return x

@@ -3,6 +3,10 @@ import numpy as np
 import api.python.numpy_nn as nn
 
 
+def supported_layers():
+    return [x.__name__ for x in ParamLayer.__subclasses__()]
+
+
 class Layer:
     def __init__(self):
         self.vars = {}
@@ -22,9 +26,9 @@ class ParamLayer(Layer, ABC):
         super().__init__()
 
         self.vars["W"] = weight_initializer.initialize(weight_shape)
-        self.vars["b"] = bias_initializer.initialize((weight_shape[1], ))
+        self.vars["b"] = bias_initializer.initialize((weight_shape[1],))
         self.vars["dW"] = np.zeros(weight_shape)
-        self.vars["db"] = np.zeros((weight_shape[1], ))
+        self.vars["db"] = np.zeros((weight_shape[1],))
 
         self.z = None
         self.input = None

@@ -2,6 +2,10 @@ from abc import ABC
 from .utils import mat_add, rescale
 
 
+def supported_losses():
+    return [x.__name__ for x in LossFunc.__subclasses__()]
+
+
 class Loss:
     def __init__(self, value, delta):
         self.value = value
@@ -27,12 +31,13 @@ class LossFunc:
 class MSELoss(LossFunc, ABC):
     def __init__(self):
         super(MSELoss, self).__init__()
-    
+
     def apply(self, p, t):
         super(MSELoss, self).__init__(p, t)
         # return Loss(np.mean((p - t) ** 2) / 2, self.delta)
         assert isinstance(p, list) and isinstance(t, list)
-        assert isinstance(p[0], list) and isinstance(t[0], list), "target and prediction should be in batch mode: (batch_size, n_dims)"
+        assert isinstance(p[0], list) and isinstance(t[0],
+                                                     list), "target and prediction should be in batch mode: (batch_size, n_dims)"
 
         assert len(p) == len(t) and len(p[0]) == len(t[0])
         loss = 0
@@ -45,5 +50,5 @@ class MSELoss(LossFunc, ABC):
     def delta(self):
         len_p = len(self.pred)
         len_t = len(self.target)
-        return mat_add(self.pred, rescale(self.target, len_t, len(self.target[0]), -1), len_p, len(self.pred[0]), len_t, len(self.target[0]))
-
+        return mat_add(self.pred, rescale(self.target, len_t, len(self.target[0]), -1), len_p, len(self.pred[0]), len_t,
+                       len(self.target[0]))

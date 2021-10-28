@@ -1,6 +1,10 @@
 from abc import ABC
 
 
+def supported_optimizers():
+    return [x.__name__ for x in Optimizer.__subclasses__()]
+
+
 class Optimizer:
     def __init__(self, params, lr):
         self.params = params

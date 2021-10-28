@@ -3,6 +3,10 @@ import numpy as np
 from abc import ABC
 
 
+def supported_losses():
+    return [x.__name__ for x in LossFunc.__subclasses__()]
+
+
 class Loss:
     def __init__(self, value, delta):
         self.value = value
