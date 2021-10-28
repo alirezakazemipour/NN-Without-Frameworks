@@ -1,7 +1,8 @@
 from abc import ABC
 import api.python.numpy_nn as nn
-from .utils import mat_mul, mat_add
+from .utils import mat_mul, mat_add, element_wise_mul, transpose, rescale
 from copy import deepcopy
+
 
 class Layer:
     def __init__(self):
@@ -62,12 +63,19 @@ class Dense(ParamLayer, ABC):
         a = self.act(z)
         return a
 
-    # def backward(self, delta):
-    #     dz = delta * self.act.derivative(self.z)
-    #     self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
-    #     self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
-    #     delta = dz.dot(self.vars["W"].T)
-    #     return delta
+    def backward(self, delta):
+        dz = element_wise_mul(delta, self.act.derivative(self.z), len(delta), self.out_features, len(delta), self.out_features)
+        input_t = transpose(self.input, len(self.input), self.in_features)
+        dw_unscale = mat_mul(input_t, dz, self.in_features, len(self.input), len(delta), self.out_features)
+        self.vars["dW"] = rescale(dw_unscale, self.in_features, self.out_features, 1 / len(dz))
+        # self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
+        ones_t = [[1 for _ in range(len(delta))] for _ in range(self.in_features)]
+        db_unscale = mat_mul(ones_t, dz, self.in_features, len(delta), len(delta), self.out_features)
+        self.vars["db"] = rescale(db_unscale, self.in_features, self.out_features, 1 / len(dz))
+        w_t = transpose(self.vars["W"], self.in_features, self.out_features)
+        # delta = dz.dot(self.vars["W"].T)
+        delta = mat_mul(dz, w_t, len(delta), self.out_features, self.out_features, self.in_features)
+        return delta
 
     def __call__(self, x):
         return self.forward(x)

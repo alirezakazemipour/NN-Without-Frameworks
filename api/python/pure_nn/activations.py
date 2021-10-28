@@ -18,8 +18,8 @@ class Linear(Activation, ABC):
         return x
 
     def derivative(self, x):
-        assert len(x.shape) == 2
-        w, h = x.shape
+        assert len(x) > 0
+        w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):
             for j in range(h):
@@ -38,8 +38,8 @@ class ReLU(Activation, ABC):
         return temp
 
     def derivative(self, x):
-        assert len(x.shape) == 2
-        w, h = x.shape
+        assert len(x) > 0
+        w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):
             for j in range(h):
