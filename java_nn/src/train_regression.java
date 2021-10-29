@@ -1,7 +1,9 @@
 import Layers.Dense;
-
+import Losses.Loss;
+import Losses.MSELoss;
 import java.util.Arrays;
 import java.util.Random;
+import java.lang.Math;
 
 class MyNet extends Module{
     int in_features = 0;
@@ -32,14 +34,25 @@ class MyNet extends Module{
 
 public class train_regression {
     public static void main(String[] args) {
-        float[][] x = new float[200][1];
+        Random random = new Random();
+        random.setSeed(1);
+
+        float[][] x = new float[200][1], t = new float[200][1];
         for(int i = -100; i < 100; i++){
             x[i + 100][0] = 0.01F * i;
+            t[i + 100][0] = (float) Math.pow(x[i + 100][0], 2) + (float)(random.nextGaussian() * 0.1);
         }
         System.out.println(Arrays.deepToString(x));
         MyNet my_net = new MyNet(1);
         float[][] y = my_net.forward(x);
         System.out.println(Arrays.deepToString(y));
+        System.out.println(Arrays.deepToString(t));
+        MSELoss mse = new MSELoss();
+        Loss loss = mse.apply(y, t);
+        System.out.println(loss);
+
+
+
 
     }
 }

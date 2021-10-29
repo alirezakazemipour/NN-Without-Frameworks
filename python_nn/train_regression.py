@@ -1,4 +1,4 @@
-from api.python import pure_nn as nn
+from .python import pure_nn as nn
 import matplotlib.pyplot as plt
 import random
 

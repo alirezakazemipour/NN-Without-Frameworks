@@ -1,4 +1,4 @@
-import api.python.pure_nn as nn
+import .python.pure_nn as nn
 
 
 class Module:

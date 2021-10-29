@@ -6,9 +6,9 @@ public class Utils {
     public float[][] mat_mul(float[][]A, float[][]B){
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
-//        if(k != m) {
-//            throw new RuntimeException("Invalid shape for matrices!");
-//        }
+        if(k != m) {
+            throw new RuntimeException("Invalid shape for matrices!");
+        }
         float[][] temp = new float[n][l];
         for(int i = 0; i < n; i++){
             for(int j =0; j < l; j++) {
@@ -33,6 +33,15 @@ public class Utils {
                 }
             }
         }
+    public void rescale(float[][] A, float scale){
+        int w = A.length, h = A[0].length;
+        for(int i = 0; i < w; i++){
+            for(int j = 0; j < h; j++){
+                A[i][j] *= scale;
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         float[][] a = new float[][]{{1, 2}, {3, 4}};

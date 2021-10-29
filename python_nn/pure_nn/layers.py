@@ -1,5 +1,5 @@
 from abc import ABC
-import api.python.numpy_nn as nn
+import .python.numpy_nn as nn
 from .utils import mat_mul, mat_add, element_wise_mul, transpose, rescale
 from copy import deepcopy
 

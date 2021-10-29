@@ -1,6 +1,6 @@
 from abc import ABC
 import numpy as np
-import api.python.numpy_nn as nn
+import .python.numpy_nn as nn
 
 
 def supported_layers():
