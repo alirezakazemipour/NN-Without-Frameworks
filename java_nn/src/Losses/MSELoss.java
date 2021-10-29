@@ -28,9 +28,8 @@ public class MSELoss extends LossFunc{
 
     @Override
     public float[][] delta(){
-        this.utils.rescale(this.target, -1);
-        this.utils.mat_add(this.pred, this.target);
-        return this.pred;
+        float[][] delta = this.utils.mat_add(this.pred, this.utils.rescale(this.target, -1));
+        return delta;
     }
 
 }

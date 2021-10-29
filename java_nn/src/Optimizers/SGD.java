@@ -1,8 +1,6 @@
 package Optimizers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
 
 import Layers.Dense;
 import Utils.Utils;
@@ -16,11 +14,9 @@ public class SGD extends Optimizer {
 
     @Override
     public void apply() {
-        for (int i = 0; i < this.parameters.size(); i++) {
-            this.utils.rescale(this.parameters.get(i).dW, -this.lr);
-            this.utils.mat_add(this.parameters.get(i).W, this.parameters.get(i).dW);
-            this.utils.rescale(this.parameters.get(i).db, -this.lr);
-            this.utils.mat_add(this.parameters.get(i).b, this.parameters.get(i).db);
+        for (Dense parameter : this.parameters) {
+            parameter.W = this.utils.mat_add(parameter.W, this.utils.rescale(parameter.dW, -this.lr));
+            parameter.b = this.utils.mat_add(parameter.b, this.utils.rescale(parameter.db, -this.lr));
 
         }
 

@@ -2,7 +2,7 @@
 - [ ]  CI support by CircleCI
 - [ ] Sphinx Documentation
 - [ ] PyPI page
-- [ ] Java language support for Regression
+- [x] Java language support for Regression
 - [ ] CPP language Support for Regression
 - [ ] Xavier and He initializers
 - [ ] Batchnorm

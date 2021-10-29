@@ -19,7 +19,7 @@ public class Dense implements Layer {
     ReLU relu = new ReLU();
     String act_name = "linear";
     RandomUniform random_uniform = new RandomUniform();
-    Constant zeros = new Constant(0F);
+    Constant zeros = new Constant(0.1F);
     float[][] input, z;
 
     public Dense(int in_features,
@@ -55,7 +55,7 @@ public class Dense implements Layer {
         for (int i = 0; i < z.length; i++) {
             b[i] = this.b[0];
         }
-        this.utils.mat_add(z, b);
+        z = this.utils.mat_add(z, b);
         this.z = z;
 
         float[][] a = (this.act_name.equals("relu")) ? this.relu.forward(z) : this.linear.forward(z);
@@ -74,8 +74,7 @@ public class Dense implements Layer {
 
         float[][] input_t = this.utils.transpose(this.input);
         float[][] dw = this.utils.mat_mul(input_t, dz);
-        this.utils.rescale(dw, 1F / dz.length);
-        this.dW = dw;
+        this.dW = this.utils.rescale(dw, 1F / dz.length);
 
         float[][] ones_t = new float[1][dz.length];
         for(int i = 0; i < ones_t.length; i++){
@@ -85,8 +84,7 @@ public class Dense implements Layer {
         }
 
         float[][] db = utils.mat_mul(ones_t, dz);
-        this.utils.rescale(db, 1F / dz.length);
-        this.db = db;
+        this.db = this.utils.rescale(db, 1F / dz.length);
 
         float[][] w_t = this.utils.transpose(this.W);
         delta = this.utils.mat_mul(dz, w_t);

@@ -3,17 +3,17 @@ package Utils;
 import java.util.Arrays;
 
 public class Utils {
-    public float[][] mat_mul(float[][]A, float[][]B){
+    public float[][] mat_mul(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
-        if(k != m) {
+        if (k != m) {
             throw new RuntimeException("Invalid shape for matrices!");
         }
         float[][] temp = new float[n][l];
-        for(int i = 0; i < n; i++){
-            for(int j =0; j < l; j++) {
-                temp[i][j] =0;
-                for(int r = 0; r < m; r++){
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < l; j++) {
+                temp[i][j] = 0;
+                for (int r = 0; r < m; r++) {
                     temp[i][j] += A[i][r] * B[r][j];
                 }
             }
@@ -21,49 +21,54 @@ public class Utils {
         return temp;
     }
 
-    public float[][] element_wise_mul(float[][]A, float[][]B){
+    public float[][] element_wise_mul(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
-        if(n != k || m!= l) {
+        if (n != k || m != l) {
             throw new RuntimeException("Invalid shape for matrices!");
         }
         float[][] temp = new float[n][m];
-        for(int i = 0; i < n; i++){
-            for(int j =0; j < m; j++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
                 temp[i][j] = A[i][j] * B[i][j];
             }
         }
         return temp;
     }
 
-    public void mat_add(float[][]A, float[][]B){
+    public float[][] mat_add(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
-        if(n != k || m != l) {
+        if (n != k || m != l) {
             throw new RuntimeException("Invalid shape for matrices!");
         }
-        for(int i = 0; i < n; i++){
-            for(int j =0; j < l; j++) {
-                A[i][j] += B[i][j];
-                }
+        float[][] temp = new float[n][m];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < l; j++) {
+                temp[i][j] = A[i][j] + B[i][j];
             }
         }
-    public void rescale(float[][] A, float scale){
+        return temp;
+    }
+
+    public float[][] rescale(float[][] A, float scale) {
         int w = A.length, h = A[0].length;
-        for(int i = 0; i < w; i++){
-            for(int j = 0; j < h; j++){
-                A[i][j] *= scale;
+        float[][] temp = new float[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                temp[i][j] = A[i][j] * scale;
             }
         }
+        return temp;
     }
 
 
-    public float[][] transpose(float[][] A){
+    public float[][] transpose(float[][] A) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[h][w];
-        for(int i = 0; i < w; i++){
-            for(int j = 0; j < h; j++){
-                temp[j][i] = A[i][j] ;
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                temp[j][i] = A[i][j];
             }
         }
         return temp;
