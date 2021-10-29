@@ -1,5 +1,5 @@
 from abc import ABC
-import .python.numpy_nn as nn
+import python_nn.numpy_nn as nn
 from .utils import mat_mul, mat_add, element_wise_mul, transpose, rescale
 from copy import deepcopy
 
@@ -74,9 +74,9 @@ class Dense(ParamLayer, ABC):
         dw_unscale = mat_mul(input_t, dz, self.in_features, len(self.input), len(delta), self.out_features)
         self.vars["dW"] = rescale(dw_unscale, self.in_features, self.out_features, 1 / len(dz))
         # self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
-        ones_t = [[1 for _ in range(len(delta))] for _ in range(self.in_features)]
-        db_unscale = mat_mul(ones_t, dz, self.in_features, len(delta), len(delta), self.out_features)
-        self.vars["db"] = rescale(db_unscale, self.in_features, self.out_features, 1 / len(dz))
+        ones_t = [[1 for _ in range(len(dz))] for _ in range(1)]
+        db_unscale = mat_mul(ones_t, dz, 1, len(delta), len(delta), self.out_features)
+        self.vars["db"] = rescale(db_unscale, 1, self.out_features, 1 / len(dz))
         w_t = transpose(self.vars["W"], self.in_features, self.out_features)
         # delta = dz.dot(self.vars["W"].T)
         delta = mat_mul(dz, w_t, len(delta), self.out_features, self.out_features, self.in_features)

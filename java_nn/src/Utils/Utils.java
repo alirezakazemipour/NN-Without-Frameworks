@@ -21,6 +21,21 @@ public class Utils {
         return temp;
     }
 
+    public float[][] element_wise_mul(float[][]A, float[][]B){
+        int n = A.length, m = A[0].length;
+        int k = B.length, l = B[0].length;
+        if(n != k || m!= l) {
+            throw new RuntimeException("Invalid shape for matrices!");
+        }
+        float[][] temp = new float[n][m];
+        for(int i = 0; i < n; i++){
+            for(int j =0; j < m; j++) {
+                temp[i][j] = A[i][j] * B[i][j];
+            }
+        }
+        return temp;
+    }
+
     public void mat_add(float[][]A, float[][]B){
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
@@ -42,6 +57,17 @@ public class Utils {
         }
     }
 
+
+    public float[][] transpose(float[][] A){
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[h][w];
+        for(int i = 0; i < w; i++){
+            for(int j = 0; j < h; j++){
+                temp[j][i] = A[i][j] ;
+            }
+        }
+        return temp;
+    }
 
     public static void main(String[] args) {
         float[][] a = new float[][]{{1, 2}, {3, 4}};

@@ -1,4 +1,4 @@
-from .python import pure_nn as nn
+import python_nn.pure_nn as nn
 import matplotlib.pyplot as plt
 import random
 
@@ -9,15 +9,15 @@ class MyNet(nn.Module):
         self.input_dim = input_dim
         self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
                                        out_features=10,
-                                       activation=nn.acts.Tanh(),
+                                       activation=nn.acts.ReLU(),
                                        weight_initializer=nn.inits.RandomUniform(),
-                                       bias_initializer=nn.inits.Constant(0.1)
+                                       bias_initializer=nn.inits.Constant(0.)
                                        )
 
         self.output = nn.layers.Dense(in_features=10,
                                       out_features=1,
                                       weight_initializer=nn.inits.RandomUniform(),
-                                      bias_initializer=nn.inits.Constant(0.1))
+                                      bias_initializer=nn.inits.Constant(0.))
 
     def forward(self, x):
         x = self.hidden1(x)
@@ -26,13 +26,17 @@ class MyNet(nn.Module):
 
 random.seed(1)
 x = [[0.01 * i] for i in range(-100, 100)]
-t = [[k[0] ** 2 + random.gauss(0, 0.1)] for k in x]
+t = [[k[0] ** 2 + random.gauss(0, 1) * 0.1] for k in x]
 
 my_net = MyNet(1)
 mse = nn.losses.MSELoss()
 opt = nn.optims.SGD(my_net.parameters, 0.1)
 for epoch in range(1000):
     y = my_net(x)
+    # print(x)
+    # print(y)
+    # print(t)
+    exit()
     loss = mse(y, t)
     my_net.backward(loss)
     opt.apply()

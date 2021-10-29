@@ -1,6 +1,7 @@
 import Layers.Dense;
 import Losses.Loss;
 import Losses.MSELoss;
+import Optimizers.SGD;
 import java.util.Arrays;
 import java.util.Random;
 import java.lang.Math;
@@ -22,7 +23,6 @@ class MyNet extends Module{
                 "random_uniform",
                 "zeros");
         this.layers.add(this.output);
-        this.set_params(this.layers);
     }
 
     public float[][] forward(float[][] x){
@@ -42,17 +42,17 @@ public class train_regression {
             x[i + 100][0] = 0.01F * i;
             t[i + 100][0] = (float) Math.pow(x[i + 100][0], 2) + (float)(random.nextGaussian() * 0.1);
         }
-        System.out.println(Arrays.deepToString(x));
         MyNet my_net = new MyNet(1);
-        float[][] y = my_net.forward(x);
-        System.out.println(Arrays.deepToString(y));
-        System.out.println(Arrays.deepToString(t));
         MSELoss mse = new MSELoss();
-        Loss loss = mse.apply(y, t);
-        System.out.println(loss);
-
-
-
+        SGD opt = new SGD(0.1F, my_net.layers);
+        for (int epoch = 0; epoch < 1000; epoch++){
+            float[][] y = my_net.forward(x);
+            Loss loss = mse.apply(y, t);
+            my_net.backward(loss);
+            opt.apply();
+            System.out.println("Step: " + epoch +" | loss: " + loss.value);
+//            System.out.println(Arrays.deepToString(my_net.hidden1.b));
+        }
 
     }
 }

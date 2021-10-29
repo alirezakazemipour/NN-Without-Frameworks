@@ -1,20 +1,17 @@
 import Layers.Dense;
 import java.util.*;
+import Losses.Loss;
 
 public abstract class Module {
     public ArrayList<Dense> layers = new ArrayList<>();
-    public Map<String, float[][]> parameters = new HashMap<>();
 
-    public void set_params(ArrayList<Dense> x){
-        int num_layers = x.size();
-        for(int i = 0; i < num_layers; i++){
-            this.parameters.put("W", x.get(i).W);
-            this.parameters.put("b", x.get(i).b);
-            this.parameters.put("dW", x.get(i).dW);
-            this.parameters.put("db", x.get(i).db);
+    public void backward(Loss loss){
+        float[][] delta = loss.delta;
+        int num_layers = layers.size();
+        for(int i = num_layers - 1; i >= 0; i--){
+            delta = this.layers.get(i).backward(delta);
         }
+
     }
-
-
     abstract float[][] forward(float[][] x);
 }

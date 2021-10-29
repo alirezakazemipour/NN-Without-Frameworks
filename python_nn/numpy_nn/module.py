@@ -1,4 +1,4 @@
-import .python.numpy_nn as nn
+import python_nn.numpy_nn as nn
 
 
 class Module:

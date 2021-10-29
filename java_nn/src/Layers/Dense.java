@@ -1,7 +1,9 @@
 package Layers;
+
 import Initializers.*;
 import Utils.*;
 import Activations.*;
+
 import java.util.*;
 
 
@@ -18,7 +20,7 @@ public class Dense implements Layer {
     String act_name = "linear";
     RandomUniform random_uniform = new RandomUniform();
     Constant zeros = new Constant(0F);
-    Object input, z;
+    float[][] input, z;
 
     public Dense(int in_features,
                  int out_features,
@@ -31,10 +33,10 @@ public class Dense implements Layer {
         this.weight_initializer = weight_initializer;
         this.bias_initializer = bias_initializer;
 
-        if(weight_initializer.equals("random_uniform")) {
+        if (weight_initializer.equals("random_uniform")) {
             this.W = this.random_uniform.initialize(this.in_features, this.out_features);
         }
-        if(bias_initializer.equals("zeros")) {
+        if (bias_initializer.equals("zeros")) {
             this.b = this.zeros.initialize(1, this.out_features);
         }
 
@@ -49,8 +51,8 @@ public class Dense implements Layer {
     public float[][] forward(float[][] x) {
         this.input = x;
         float[][] z = this.utils.mat_mul(x, this.W);
-        float [][] b = new float[z.length][this.b[0].length];
-        for(int i = 0; i < z.length; i++){
+        float[][] b = new float[z.length][this.b[0].length];
+        for (int i = 0; i < z.length; i++) {
             b[i] = this.b[0];
         }
         this.utils.mat_add(z, b);
@@ -61,8 +63,34 @@ public class Dense implements Layer {
     }
 
     @Override
-    public float[][] backward(float[][] x) {
-        return new float[0][];
+    public float[][] backward(float[][] delta) {
+        float[][] dz;
+        if (this.act_name.equals("relu")) {
+            dz = this.utils.element_wise_mul(delta, this.relu.derivative(this.z));
+        }
+        else {
+            dz = this.utils.element_wise_mul(delta, this.linear.derivative(this.z));
+        }
+
+        float[][] input_t = this.utils.transpose(this.input);
+        float[][] dw = this.utils.mat_mul(input_t, dz);
+        this.utils.rescale(dw, 1F / dz.length);
+        this.dW = dw;
+
+        float[][] ones_t = new float[1][dz.length];
+        for(int i = 0; i < ones_t.length; i++){
+            for(int j = 0; j < ones_t[0].length; j++){
+                ones_t[i][j] = 1;
+            }
+        }
+
+        float[][] db = utils.mat_mul(ones_t, dz);
+        this.utils.rescale(db, 1F / dz.length);
+        this.db = db;
+
+        float[][] w_t = this.utils.transpose(this.W);
+        delta = this.utils.mat_mul(dz, w_t);
+        return delta;
     }
 
     public static void main(String[] args) {

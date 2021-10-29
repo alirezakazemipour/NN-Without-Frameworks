@@ -1,4 +1,4 @@
-import .python.pure_nn as nn
+import python_nn.pure_nn as nn
 
 
 class Module:
