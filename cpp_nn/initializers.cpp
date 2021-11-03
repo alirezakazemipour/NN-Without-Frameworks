@@ -1,11 +1,11 @@
 #include "initializers.h"
 
 
-float **Constant::initialize(unsigned int w, unsigned int h)
+vector<vector<float>> Constant::initialize(unsigned int w, unsigned int h)
 {
-    float **temp = new float*[w];
+    vector<vector<float>> temp(w, vector<float>(h, 1));
+
     for(unsigned int i  = 0; i < w; i++){
-        temp[i] = new float[h];
         for(unsigned int j = 0; j < h; j++){
             temp[i][j] = this->c;
         }
@@ -13,11 +13,9 @@ float **Constant::initialize(unsigned int w, unsigned int h)
     return temp;
 }
 
-float **RandomUniform::initialize(unsigned int w, unsigned int h){
-    float** temp = new float* [w];
-    std::mt19937 gen(this->rd());
+vector<vector<float>> RandomUniform::initialize(unsigned int w, unsigned int h){
+    vector<vector<float>> temp(w, vector<float>(h, 1));    std::mt19937 gen(this->rd());
     for(unsigned int i  = 0; i < w; i++){
-        temp[i] = new float[h];
         for(unsigned int j = 0; j < h; j++){
             temp[i][j] = this->dis(gen);
         }

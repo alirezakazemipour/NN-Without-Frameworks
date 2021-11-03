@@ -4,10 +4,16 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        activations.cpp \
         initializers.cpp \
+        layers.cpp \
         main.cpp \
-        module.cpp
+        module.cpp \
+        utils.cpp
 
 HEADERS += \
+    activations.h \
     initializers.h \
-    module.h
+    layers.h \
+    module.h \
+    utils.h
