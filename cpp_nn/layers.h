@@ -4,6 +4,7 @@
 #include <initializers.h>
 #include <utils.h>
 #include <activations.h>
+#include <array>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ class Layer{
 
 public:
     virtual vector<vector<float>> forward(const vector<vector<float>> &x) = 0;
-    virtual vector<vector<float>> backward(vector<vector<float>> x) = 0;
+    virtual vector<vector<float>> backward(vector<vector<float>> &x) = 0;
 };
 
 
@@ -53,7 +54,7 @@ public:
 
     // Layer interface
     vector<vector<float>> forward(const vector<vector<float>> &x);
-    vector<vector<float>> backward(vector<vector<float>> x);
+    vector<vector<float>> backward(vector<vector<float>> &delta);
 };
 
 #endif // LAYERS_H

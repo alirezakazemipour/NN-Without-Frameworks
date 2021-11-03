@@ -10,6 +10,7 @@ SOURCES += \
         losses.cpp \
         main.cpp \
         module.cpp \
+        optimizers.cpp \
         utils.cpp
 
 HEADERS += \
@@ -18,4 +19,5 @@ HEADERS += \
     layers.h \
     losses.h \
     module.h \
+    optimizers.h \
     utils.h
