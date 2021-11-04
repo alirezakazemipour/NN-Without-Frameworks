@@ -62,6 +62,7 @@ class Dense(ParamLayer, ABC):
         return a
 
     def backward(self, delta):
+        #  https://cs182sp21.github.io/static/slides/lec-5.pdf
         dz = delta * self.act.derivative(self.z)
         self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
         self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
