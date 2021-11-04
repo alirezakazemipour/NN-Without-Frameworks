@@ -1,5 +1,5 @@
 from abc import ABC
-from .utils import mat_add, rescale
+from .utils import *
 
 
 def supported_optimizers():
@@ -43,3 +43,28 @@ class Momentum(Optimizer, ABC):
             param["gb"] = mat_add(param["db"], rescale(param["gb"], self.mu))
             grad_step_b = rescale(param["gb"], -self.lr)
             param["b"] = mat_add(param["b"], grad_step_b)
+
+
+class RMSProp(Optimizer, ABC):
+    def __init__(self, params, lr, beta, eps=1e-8):
+        super(RMSProp, self).__init__(params, lr)
+        self.beta = beta
+        self.eps = eps
+        for layer in list(self.params.values()):
+            layer.update({"sW": rescale(layer["dW"], 0)})
+            layer.update({"sb": rescale(layer["db"], 0)})
+
+    def apply(self):
+        for param in self.params.values():
+
+            grad_square_w = element_wise_mul(param["dW"], param["dW"])
+            grad_square_w = rescale(grad_square_w, 1 - self.beta)
+            param["sW"] = mat_add(rescale(param["sW"], self.beta), grad_square_w)
+            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(mat_sqrt(add_scalar(param["sW"], self.eps))))
+            param["W"] = mat_add(param["W"], rescale(grad_step_w, -self.lr))
+
+            grad_square_b = element_wise_mul(param["db"], param["db"])
+            grad_square_b = rescale(grad_square_b, 1 - self.beta)
+            param["sb"] = mat_add(rescale(param["sb"], self.beta), grad_square_b)
+            grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_sqrt(add_scalar(param["sb"], self.eps))))
+            param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))

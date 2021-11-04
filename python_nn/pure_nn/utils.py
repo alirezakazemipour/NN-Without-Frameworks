@@ -1,3 +1,6 @@
+import math
+
+
 def mat_mul(a, b):
     i, j = len(a), len(a[0])
     n, k = len(b), len(b[0])
@@ -24,6 +27,15 @@ def mat_add(a, b):
     return temp
 
 
+def add_scalar(a, scalar):
+    i, j = len(a), len(a[0])
+    temp = [[None for _ in range(j)] for _ in range(i)]
+    for w in range(i):
+        for h in range(j):
+            temp[w][h] = a[w][h] + scalar
+    return temp
+
+
 def element_wise_mul(a, b):
     i, j = len(a), len(a[0])
     n, k = len(b), len(b[0])
@@ -33,6 +45,24 @@ def element_wise_mul(a, b):
     for w in range(i):
         for h in range(j):
             temp[w][h] = a[w][h] * b[w][h]
+    return temp
+
+
+def element_wise_rev(a):
+    i, j = len(a), len(a[0])
+    temp = [[None for _ in range(j)] for _ in range(i)]
+    for w in range(i):
+        for h in range(j):
+            temp[w][h] = 1 / a[w][h]
+    return temp
+
+
+def mat_sqrt(a):
+    i, j = len(a), len(a[0])
+    temp = [[None for _ in range(j)] for _ in range(i)]
+    for w in range(i):
+        for h in range(j):
+            temp[w][h] = math.sqrt(a[w][h])
     return temp
 
 
@@ -61,4 +91,4 @@ if __name__ == "__main__":
     print(mat_add(a, b))
     print(element_wise_mul(a, b))
     print(transpose(a))
-    print(rescale(a, 1/5))
+    print(rescale(a, 1 / 5))
