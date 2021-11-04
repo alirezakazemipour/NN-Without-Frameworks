@@ -36,7 +36,6 @@ class Constant(Initializer, ABC):
 
 class RandomUniform(Initializer, ABC):
     def initialize(self, x):
-        assert len(x[0]) > 0
         w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):
