@@ -14,3 +14,4 @@
 - [ ] Docker Support
 - [ ] Acknowledgements
 - [x] Invite to contribute
+- [ ] Add maths references

@@ -60,13 +60,13 @@ class RMSProp(Optimizer, ABC):
             grad_square_w = element_wise_mul(param["dW"], param["dW"])
             grad_square_w = rescale(grad_square_w, 1 - self.beta)
             param["sW"] = mat_add(rescale(param["sW"], self.beta), grad_square_w)
-            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(mat_sqrt(add_scalar(param["sW"], self.eps))))
+            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(add_scalar(mat_sqrt(param["sW"]), self.eps)))
             param["W"] = mat_add(param["W"], rescale(grad_step_w, -self.lr))
 
             grad_square_b = element_wise_mul(param["db"], param["db"])
             grad_square_b = rescale(grad_square_b, 1 - self.beta)
             param["sb"] = mat_add(rescale(param["sb"], self.beta), grad_square_b)
-            grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_sqrt(add_scalar(param["sb"], self.eps))))
+            grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_add(mat_sqrt(param["sb"]), self.eps)))
             param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))
 
 
@@ -83,10 +83,10 @@ class AdaGrad(Optimizer, ABC):
 
             grad_square_w = element_wise_mul(param["dW"], param["dW"])
             param["sW"] = mat_add(param["sW"], grad_square_w)
-            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(mat_sqrt(add_scalar(param["sW"], self.eps))))
+            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(add_scalar(mat_sqrt(param["sW"]), self.eps)))
             param["W"] = mat_add(param["W"], rescale(grad_step_w, -self.lr))
 
             grad_square_b = element_wise_mul(param["db"], param["db"])
             param["sb"] = mat_add(param["sb"], grad_square_b)
-            grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_sqrt(add_scalar(param["sb"], self.eps))))
+            grad_step_b = element_wise_mul(param["db"], element_wise_rev(add_scalar(mat_sqrt(param["sb"]), self.eps)))
             param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))
