@@ -74,6 +74,39 @@ public class Utils {
         return temp;
     }
 
+    public float[][] element_wise_rev(float[][] A) {
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                temp[i][j] = 1 / A[i][j];
+            }
+        }
+        return temp;
+    }
+
+    public float[][] add_scalar(float[][] A, float scalar) {
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                temp[i][j] = A[i][j] + scalar;
+            }
+        }
+        return temp;
+    }
+
+    public float[][] mat_sqrt(float[][] A) {
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                temp[i][j] = (float) Math.sqrt(A[i][j]);
+            }
+        }
+        return temp;
+    }
+
     public static void main(String[] args) {
         float[][] a = new float[][]{{1, 2}, {3, 4}};
         float[][] b = new float[][]{{5, 6}, {7, 8}};

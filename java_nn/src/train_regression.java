@@ -44,7 +44,8 @@ public class train_regression {
         MyNet my_net = new MyNet(1);
         MSELoss mse = new MSELoss();
 //        SGD opt = new SGD(0.3F, my_net.layers);
-        Momentum opt = new Momentum(my_net.layers,0.3F, 0.9F);
+//        Momentum opt = new Momentum(my_net.layers,0.3F, 0.9F);
+        RMSProp opt = new RMSProp(my_net.layers, 0.01F, 0.99F);
         for (int epoch = 0; epoch < 1000; epoch++){
             float[][] y = my_net.forward(x);
             Loss loss = mse.apply(y, t);
