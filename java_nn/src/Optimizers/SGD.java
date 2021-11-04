@@ -19,7 +19,5 @@ public class SGD extends Optimizer {
             parameter.b = this.utils.mat_add(parameter.b, this.utils.rescale(parameter.db, -this.lr));
 
         }
-
-
     }
 }

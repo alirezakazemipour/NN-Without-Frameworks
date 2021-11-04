@@ -1,7 +1,7 @@
 import Layers.Dense;
 import Losses.Loss;
 import Losses.MSELoss;
-import Optimizers.SGD;
+import Optimizers.*;
 import java.util.Random;
 import java.lang.Math;
 
@@ -43,7 +43,8 @@ public class train_regression {
         }
         MyNet my_net = new MyNet(1);
         MSELoss mse = new MSELoss();
-        SGD opt = new SGD(0.3F, my_net.layers);
+//        SGD opt = new SGD(0.3F, my_net.layers);
+        Momentum opt = new Momentum(my_net.layers,0.3F, 0.9F);
         for (int epoch = 0; epoch < 1000; epoch++){
             float[][] y = my_net.forward(x);
             Loss loss = mse.apply(y, t);
