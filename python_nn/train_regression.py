@@ -1,4 +1,4 @@
-import python_nn.numpy_nn as nn
+import python_nn.pure_nn as nn
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -26,15 +26,15 @@ class MyNet(nn.Module):
 
 
 np.random.seed(1)
-random.seed(1025)
+random.seed(1)
 x = [[0.01 * i] for i in range(-100, 100)]
 t = [[k[0] ** 2 + random.gauss(0, 1) * 0.1] for k in x]
 
 my_net = MyNet(1)
 mse = nn.losses.MSELoss()
-opt = nn.optims.Adam(my_net.parameters, lr=0.005)
+# opt = nn.optims.Adam(my_net.parameters, lr=0.001, beta1=0.8, beta2=0.99)
 # opt = nn.optims.AdaGrad(my_net.parameters, lr=0.1)
-# opt = nn.optims.RMSProp(my_net.parameters, lr=0.001, beta=0.99)
+opt = nn.optims.RMSProp(my_net.parameters, lr=0.001, beta=0.99)
 # opt = nn.optims.Momentum(my_net.parameters, lr=0.3, mu=0.8)
 # opt = nn.optims.SGD(my_net.parameters, lr=0.3)
 loss_history = []
