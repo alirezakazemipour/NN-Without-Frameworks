@@ -68,3 +68,25 @@ class RMSProp(Optimizer, ABC):
             param["sb"] = mat_add(rescale(param["sb"], self.beta), grad_square_b)
             grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_sqrt(add_scalar(param["sb"], self.eps))))
             param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))
+
+
+class AdaGrad(Optimizer, ABC):
+    def __init__(self, params, lr, eps=1e-8):
+        super(AdaGrad, self).__init__(params, lr)
+        self.eps = eps
+        for layer in list(self.params.values()):
+            layer.update({"sW": rescale(layer["dW"], 0)})
+            layer.update({"sb": rescale(layer["db"], 0)})
+
+    def apply(self):
+        for param in self.params.values():
+
+            grad_square_w = element_wise_mul(param["dW"], param["dW"])
+            param["sW"] = mat_add(param["sW"], grad_square_w)
+            grad_step_w = element_wise_mul(param["dW"], element_wise_rev(mat_sqrt(add_scalar(param["sW"], self.eps))))
+            param["W"] = mat_add(param["W"], rescale(grad_step_w, -self.lr))
+
+            grad_square_b = element_wise_mul(param["db"], param["db"])
+            param["sb"] = mat_add(param["sb"], grad_square_b)
+            grad_step_b = element_wise_mul(param["db"], element_wise_rev(mat_sqrt(add_scalar(param["sb"], self.eps))))
+            param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))
