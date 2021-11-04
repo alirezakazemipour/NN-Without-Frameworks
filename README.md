@@ -14,6 +14,10 @@ Each network/config is implemented in 4 formats while trying to mimic [PyTorch's
 
 Each directory contains a `train_regression.*` that performs test of correctness and functionality according to its corresponding format. You can execute them to get a sense of what is going on.
 
+<p>
+<img src="figures/regression.png" height=340/>
+</p>  
+
 ## Acknowledgement 
 - Current code is inspired by the elegant and simple repository [Simple Neural Networks](https://github.com/MorvanZhou/simple-neural-networks) by [@MorvanZhou ](https://github.com/MorvanZhou).
 - Mathematical foundation of different parts is based on slides of [CS W182 / 282A](https://cs182sp21.github.io/) course.
