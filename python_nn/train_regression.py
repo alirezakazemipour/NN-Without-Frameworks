@@ -1,4 +1,4 @@
-import python_nn.numpy_nn as nn
+import python_nn.pure_nn as nn
 import matplotlib.pyplot as plt
 import random
 import numpy as np
