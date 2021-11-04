@@ -1,5 +1,3 @@
-import math
-
 import python_nn.numpy_nn as nn
 import matplotlib.pyplot as plt
 import random
@@ -13,13 +11,13 @@ class MyNet(nn.Module):
         self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
                                        out_features=10,
                                        activation=nn.acts.ReLU(),
-                                       weight_initializer=nn.inits.RandomUniform(),
+                                       weight_initializer=nn.inits.HeNormal(non_linearity=nn.acts.ReLU()),
                                        bias_initializer=nn.inits.Constant(0.)
                                        )
 
         self.output = nn.layers.Dense(in_features=10,
                                       out_features=1,
-                                      weight_initializer=nn.inits.RandomUniform(),
+                                      weight_initializer=nn.inits.XavierUniform(),
                                       bias_initializer=nn.inits.Constant(0.))
 
     def forward(self, x):
