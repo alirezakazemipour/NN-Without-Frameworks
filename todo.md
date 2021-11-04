@@ -3,7 +3,7 @@
 - [ ] Sphinx Documentation
 - [ ] PyPI page
 - [x] Java language support for Regression
-- [ ] CPP language Support for Regression
+- [x] CPP language Support for Regression
 - [ ] Xavier and He initializers
 - [ ] Batchnorm
 - [ ] Regularization
@@ -13,3 +13,4 @@
 - [ ] Classification
 - [ ] Docker Support
 - [ ] Acknowledgements
+- [x] Invite to contribute
