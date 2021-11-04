@@ -58,28 +58,27 @@ class Dense(ParamLayer, ABC):
         assert isinstance(x[0], list), "Feed the input to the network in batch mode: (batch_size, n_dims)"
         self.input = x
         # z = x.dot(self.vars["W"]) + self.vars["b"]
-        z = mat_mul(x, self.vars["W"], len(x), self.in_features, self.in_features, self.out_features)
-        b = deepcopy(self.vars["b"][0])
-        while len(self.vars["b"]) < len(x):
-            self.vars["b"].append(b)
-        z = mat_add(z, self.vars["b"], len(x), self.out_features, len(x), self.out_features)
+        z = mat_mul(x, self.vars["W"])
+        b = deepcopy(self.vars["b"])
+        while len(b) < len(x):
+            b.append(self.vars["b"][0])
+        z = mat_add(z, b)
         self.z = z
         a = self.act(z)
         return a
 
     def backward(self, delta):
-        dz = element_wise_mul(delta, self.act.derivative(self.z), len(delta), self.out_features, len(delta),
-                              self.out_features)
-        input_t = transpose(self.input, len(self.input), self.in_features)
-        dw_unscale = mat_mul(input_t, dz, self.in_features, len(self.input), len(delta), self.out_features)
-        self.vars["dW"] = rescale(dw_unscale, self.in_features, self.out_features, 1 / len(dz))
+        dz = element_wise_mul(delta, self.act.derivative(self.z))
+        input_t = transpose(self.input)
+        dw_unscale = mat_mul(input_t, dz)
+        self.vars["dW"] = rescale(dw_unscale, 1 / len(dz))
         # self.vars["db"] = np.sum(dz, axis=0) / dz.shape[0]
         ones_t = [[1 for _ in range(len(dz))] for _ in range(1)]
-        db_unscale = mat_mul(ones_t, dz, 1, len(delta), len(delta), self.out_features)
-        self.vars["db"] = rescale(db_unscale, 1, self.out_features, 1 / len(dz))
-        w_t = transpose(self.vars["W"], self.in_features, self.out_features)
+        db_unscale = mat_mul(ones_t, dz)
+        self.vars["db"] = rescale(db_unscale, 1 / len(dz))
+        w_t = transpose(self.vars["W"])
         # delta = dz.dot(self.vars["W"].T)
-        delta = mat_mul(dz, w_t, len(delta), self.out_features, self.out_features, self.in_features)
+        delta = mat_mul(dz, w_t)
         return delta
 
     def __call__(self, x):

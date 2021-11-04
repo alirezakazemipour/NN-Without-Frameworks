@@ -1,4 +1,7 @@
-def mat_mul(a, b, i, j, n, k):
+def mat_mul(a, b):
+    i, j = len(a), len(a[0])
+    n, k = len(b), len(b[0])
+
     assert n == j
     temp = [[None for _ in range(k)] for _ in range(i)]
     for w in range(i):
@@ -9,7 +12,10 @@ def mat_mul(a, b, i, j, n, k):
     return temp
 
 
-def mat_add(a, b, i, j, n, k):
+def mat_add(a, b):
+    i, j = len(a), len(a[0])
+    n, k = len(b), len(b[0])
+
     assert i == n and j == k
     temp = [[None for _ in range(j)] for _ in range(i)]
     for w in range(i):
@@ -18,7 +24,10 @@ def mat_add(a, b, i, j, n, k):
     return temp
 
 
-def element_wise_mul(a, b, i, j, n, k):
+def element_wise_mul(a, b):
+    i, j = len(a), len(a[0])
+    n, k = len(b), len(b[0])
+
     assert i == n and j == k
     temp = [[None for _ in range(j)] for _ in range(i)]
     for w in range(i):
@@ -27,7 +36,8 @@ def element_wise_mul(a, b, i, j, n, k):
     return temp
 
 
-def transpose(a, i, j):
+def transpose(a):
+    i, j = len(a), len(a[0])
     temp = [[None for _ in range(i)] for _ in range(j)]
     for w in range(j):
         for h in range(i):
@@ -35,7 +45,8 @@ def transpose(a, i, j):
     return temp
 
 
-def rescale(a, i, j, scale):
+def rescale(a, scale):
+    i, j = len(a), len(a[0])
     temp = [[None for _ in range(j)] for _ in range(i)]
     for w in range(i):
         for h in range(j):
@@ -46,8 +57,8 @@ def rescale(a, i, j, scale):
 if __name__ == "__main__":
     a = [[1, 2], [3, 4]]
     b = [[5, 6], [7, 8]]
-    print(mat_mul(a, b, 2, 2, 2, 2))
-    print(mat_add(a, b, 2, 2, 2, 2))
-    print(element_wise_mul(a, b, 2, 2, 2, 2))
-    print(transpose(a, 2, 1))
-    print(rescale(a, 2, 2, 1/5))
+    print(mat_mul(a, b))
+    print(mat_add(a, b))
+    print(element_wise_mul(a, b))
+    print(transpose(a))
+    print(rescale(a, 1/5))

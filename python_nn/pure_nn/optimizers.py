@@ -21,9 +21,7 @@ class SGD(Optimizer, ABC):
 
     def apply(self):
         for param in self.params.values():
-            grad_step_w = rescale(param["dW"], len(param["dW"]), len(param["dW"][0]), -self.lr)
-            param["W"] = mat_add(param["W"], grad_step_w, len(grad_step_w), len(grad_step_w[0]), len(grad_step_w),
-                                 len(grad_step_w[0]))
-            grad_step_b = rescale(param["db"], len(param["db"]), len(param["db"][0]), -self.lr)
-            param["b"] = mat_add(param["b"], grad_step_b, len(grad_step_b), len(grad_step_b[0]), len(grad_step_b),
-                                 len(grad_step_b[0]))
+            grad_step_w = rescale(param["dW"], -self.lr)
+            param["W"] = mat_add(param["W"], grad_step_w)
+            grad_step_b = rescale(param["db"], -self.lr)
+            param["b"] = mat_add(param["b"], grad_step_b)

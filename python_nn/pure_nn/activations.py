@@ -22,7 +22,6 @@ class Linear(Activation, ABC):
         return x
 
     def derivative(self, x):
-        assert len(x) > 0
         w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):
@@ -33,7 +32,6 @@ class Linear(Activation, ABC):
 
 class ReLU(Activation, ABC):
     def forward(self, x):
-        assert len(x) > 0
         w, h = len(x), len(x[0])
         temp = [[None for _ in range(h)] for _ in range(w)]
         for i in range(w):

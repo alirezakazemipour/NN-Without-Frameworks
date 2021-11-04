@@ -48,7 +48,4 @@ class MSELoss(LossFunc, ABC):
 
     @property
     def delta(self):
-        len_p = len(self.pred)
-        len_t = len(self.target)
-        return mat_add(self.pred, rescale(self.target, len_t, len(self.target[0]), -1), len_p, len(self.pred[0]), len_t,
-                       len(self.target[0]))
+        return mat_add(self.pred, rescale(self.target, -1))
