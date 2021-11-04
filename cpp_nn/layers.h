@@ -11,20 +11,20 @@ using namespace std;
 class Layer{
 
 public:
-    virtual vector<vector<float>> forward(const vector<vector<float>> &x) = 0;
-    virtual vector<vector<float>> backward(vector<vector<float>> &x) = 0;
+    virtual float_batch forward(const float_batch &x) = 0;
+    virtual float_batch backward(float_batch &x) = 0;
 };
 
 
 class Dense : public Layer{
 
 public:
-    vector<vector<float>> W, dW, b, db;
+    float_batch W, dW, b, db;
     int in_features, out_features;
     std::string weight_initializer;
     std::string bias_initializer;
     std::string activation = "linear";
-    vector<vector<float>> input, z;
+    float_batch input, z;
 
     RandomUniform random_uniform;
     Constant zeros{0.0};
@@ -53,8 +53,8 @@ public:
 
 
     // Layer interface
-    vector<vector<float>> forward(const vector<vector<float>> &x);
-    vector<vector<float>> backward(vector<vector<float>> &delta);
+    float_batch forward(const float_batch &x);
+    float_batch backward(float_batch &delta);
 };
 
 #endif // LAYERS_H

@@ -7,26 +7,29 @@
 
 using namespace std;
 
+typedef vector<vector<float>> float_batch;
+
+
 class Activation
 {
 public:
-    virtual vector<vector<float>> forward(const vector<vector<float>> &x)=0;
-    virtual vector<vector<float>> derivative(const vector<vector<float>> &x)=0;
+    virtual float_batch forward(const float_batch &x)=0;
+    virtual float_batch derivative(const float_batch &x)=0;
 
 };
 
 class ReLU : public Activation
 {
 public:
-    vector<vector<float>> forward(const vector<vector<float>> &x);
-    vector<vector<float>> derivative(const vector<vector<float>> &x);
+    float_batch forward(const float_batch &x);
+    float_batch derivative(const float_batch &x);
 };
 
 class Linear : public Activation
 {
 public:
-    vector<vector<float>> forward(const vector<vector<float>> &x);
-    vector<vector<float>> derivative(const vector<vector<float>> &x);
+    float_batch forward(const float_batch &x);
+    float_batch derivative(const float_batch &x);
 };
 
 

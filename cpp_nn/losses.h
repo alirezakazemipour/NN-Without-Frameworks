@@ -7,27 +7,30 @@
 
 using namespace std;
 
+typedef vector<vector<float>> float_batch;
+
+
 class Loss
 {
 public:
     float value;
     vector<vector<float>> delta;
-    Loss(float value, vector<vector<float> > delta);
+    Loss(float value, float_batch delta);
 };
 
 class LossFunc
 {
 public:
-    vector<vector<float> > target, pred;
-    virtual Loss apply(vector<vector<float> > pred, vector<vector<float> > target)=0;
-    virtual vector<vector<float> > delta()=0;
+    float_batch target, pred;
+    virtual Loss apply(float_batch pred, float_batch target)=0;
+    virtual float_batch delta()=0;
 };
 
 class MSELoss : LossFunc
 {
 public:
     Utils utils;
-    Loss apply(vector<vector<float> > pred, vector<vector<float> > target);
-    vector<vector<float> > delta();
+    Loss apply(float_batch pred, float_batch target);
+    float_batch delta();
 };
 #endif // LOSS_H

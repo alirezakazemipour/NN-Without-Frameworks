@@ -1,7 +1,7 @@
 #include "utils.h"
 #include <iostream>
 
-vector<vector<float>> Utils::mat_mul(vector<vector<float>> A, vector<vector<float>> B)
+float_batch Utils::mat_mul(float_batch A, float_batch B)
 {
     unsigned int n = A.size(), k = B.size();
     unsigned int m = A[0].size(), l = B[0].size();
@@ -9,7 +9,7 @@ vector<vector<float>> Utils::mat_mul(vector<vector<float>> A, vector<vector<floa
     if(m != k){
         throw "Invalid matrices' shapes!";
     }
-    vector<vector<float>> temp(n, vector<float>(l, 1));
+    float_batch temp(n, vector<float>(l, 1));
     for(unsigned int i = 0; i < n; i++){
         for(unsigned int j = 0; j < l; j++){
             temp[i][j] = 0;
@@ -21,7 +21,7 @@ vector<vector<float>> Utils::mat_mul(vector<vector<float>> A, vector<vector<floa
     return temp;
 }
 
-vector<vector<float>> Utils::element_wise_mul(vector<vector<float>> A, vector<vector<float> > B)
+float_batch Utils::element_wise_mul(float_batch A, float_batch B)
 {
     unsigned int n = A.size(), k = B.size();
     unsigned int m = A[0].size(), l = B[0].size();
@@ -29,7 +29,7 @@ vector<vector<float>> Utils::element_wise_mul(vector<vector<float>> A, vector<ve
     if(n != k || m != l){
         throw "Invalid matrices' shapes!";
     }
-    vector<vector<float>> temp(n, vector<float>(l, 1));
+    float_batch temp(n, vector<float>(l, 1));
     for(unsigned int i = 0; i < n; i++){
         for(unsigned int j = 0; j < l; j++){
             temp[i][j] = A[i][j] * B[i][j];
@@ -38,7 +38,7 @@ vector<vector<float>> Utils::element_wise_mul(vector<vector<float>> A, vector<ve
     return temp;
 }
 
-vector<vector<float>> Utils::mat_add(vector<vector<float>> A, vector<vector<float>> B)
+float_batch Utils::mat_add(float_batch A, float_batch B)
 {
     unsigned int n = A.size(), k = B.size();
     unsigned int m = A[0].size(), l = B[0].size();
@@ -46,7 +46,7 @@ vector<vector<float>> Utils::mat_add(vector<vector<float>> A, vector<vector<floa
     if(n != k || m != l){
         throw "Invalid matrices' shapes!";
     }
-    vector<vector<float>> temp(n, vector<float>(l, 1));
+    float_batch temp(n, vector<float>(l, 1));
     for(unsigned int i = 0; i < n; i++){
         for(unsigned int j = 0; j < l; j++){
             temp[i][j] = A[i][j] + B[i][j];
@@ -56,10 +56,10 @@ vector<vector<float>> Utils::mat_add(vector<vector<float>> A, vector<vector<floa
 }
 
 
-vector<vector<float> > Utils::rescale(vector<vector<float> > A, float scale)
+float_batch Utils::rescale(float_batch A, float scale)
 {
     unsigned int n = A.size(), m = A[0].size();
-    vector<vector<float>> temp(n, vector<float>(m, 1));
+    float_batch temp(n, vector<float>(m, 1));
     for(unsigned int i = 0; i < n; i++){
         for(unsigned int j = 0; j < m; j++){
             temp[i][j] = A[i][j] * scale;
@@ -68,11 +68,11 @@ vector<vector<float> > Utils::rescale(vector<vector<float> > A, float scale)
     return temp;
 }
 
-vector<vector<float> > Utils::transpose(vector<vector<float> > A)
+float_batch Utils::transpose(float_batch A)
 {
     unsigned int n = A.size(), m = A[0].size();
 
-    vector<vector<float>> temp(m, vector<float>(n, 1));
+    float_batch temp(m, vector<float>(n, 1));
     for(unsigned int i = 0; i < m; i++){
         for(unsigned int j = 0; j < n; j++){
             temp[i][j] = A[j][i];

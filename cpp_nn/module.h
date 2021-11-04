@@ -12,7 +12,7 @@ class Module
 {
 public:
     vector<Dense*> parameters;
-    virtual  vector<vector<float>> forward(const vector<vector<float>> &input)=0;
+    virtual  float_batch forward(const float_batch &input)=0;
     void backward(const Loss &loss);
 };
 

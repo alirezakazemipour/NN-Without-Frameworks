@@ -27,8 +27,8 @@ public:
                 "zeros"};
         this->parameters.push_back(this->output);
     }
-    vector<vector<float>> forward(const vector<vector<float>> &input){
-        vector<vector<float>> x = this->hidden->forward(input);
+    float_batch forward(const float_batch &input){
+        float_batch x = this->hidden->forward(input);
         x = this->output->forward(x);
         return x;
 
@@ -38,8 +38,8 @@ public:
 int main()
 {
     cout << "Hello World!" << endl;
-    vector<vector<float>> x(200, vector<float>(1, 1));
-    vector<vector<float>> t(200, vector<float>(1, 1));
+    float_batch x(200, vector<float>(1, 1));
+    float_batch t(200, vector<float>(1, 1));
 
     std::random_device rd{};
     std::mt19937 gen{rd()};
@@ -55,7 +55,7 @@ int main()
     MyNet my_net = MyNet{1};
     MSELoss mse{};
     SGD opt(0.3, my_net.parameters);
-    vector<vector<float>> y;
+    float_batch y;
 
     for(int epoch = 0; epoch < 1000; epoch++){
         y= my_net.forward(x);
@@ -76,9 +76,9 @@ int main()
     //    }
 
     //    Utils utils;
-    //    vector<vector<float>> a = {{1, 2}, {3, 4}};
-    //    vector<vector<float>> b = {{5, 6}, {7, 8}};
-    //    vector<vector<float>> c = utils.mat_mul(a, b);
+    //    float_batch a = {{1, 2}, {3, 4}};
+    //    float_batch b = {{5, 6}, {7, 8}};
+    //    float_batch c = utils.mat_mul(a, b);
 
     //    for(int i = 0; i < 2; i++){
     //        for(int j = 0; j < 2; j++){

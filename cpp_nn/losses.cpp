@@ -1,12 +1,12 @@
 #include "losses.h"
 
-Loss::Loss(float value, vector<vector<float>> delta)
+Loss::Loss(float value, float_batch delta)
 {
     this->value = value;
     this->delta = delta;
 }
 
-Loss MSELoss::apply(vector<vector<float> > pred, vector<vector<float> > target)
+Loss MSELoss::apply(float_batch pred, float_batch target)
 {
     this->pred = pred;
     this->target = target;
@@ -20,8 +20,8 @@ Loss MSELoss::apply(vector<vector<float> > pred, vector<vector<float> > target)
     return Loss(loss / w, this->delta());
 }
 
-vector<vector<float> > MSELoss::delta()
+float_batch MSELoss::delta()
 {
-    vector<vector<float> > delta = this->utils.mat_add(this->pred, this->utils.rescale(this->target, -1));
+    float_batch delta = this->utils.mat_add(this->pred, this->utils.rescale(this->target, -1));
     return delta;
 }

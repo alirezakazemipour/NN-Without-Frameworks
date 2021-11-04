@@ -6,15 +6,17 @@
 
 using namespace std;
 
+typedef vector<vector<float>> float_batch;
+
 class Utils
 {
 public:
 //    Utils();
-    vector<vector<float>> mat_mul(vector<vector<float>> A, vector<vector<float>> B);
-    vector<vector<float>> element_wise_mul(vector<vector<float>> A, vector<vector<float>> B);
-    vector<vector<float>> mat_add(vector<vector<float>> A, vector<vector<float>> B);
-    vector<vector<float>> rescale(vector<vector<float>> A, float scale);
-    vector<vector<float>> transpose(vector<vector<float>> A);
+    float_batch mat_mul(float_batch A, float_batch B);
+    float_batch element_wise_mul(float_batch A, float_batch B);
+    float_batch mat_add(float_batch A, float_batch B);
+    float_batch rescale(float_batch A, float scale);
+    float_batch transpose(float_batch A);
 };
 
 #endif // UTILS_H

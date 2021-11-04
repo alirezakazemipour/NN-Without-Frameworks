@@ -6,9 +6,12 @@
 
 using namespace std;
 
+typedef vector<vector<float>> float_batch;
+
+
 class Initializer{
 public:
-    virtual vector<vector<float>> initialize(unsigned int w, unsigned int h)=0;
+    virtual float_batch initialize(unsigned int w, unsigned int h)=0;
 };
 
 class Constant : public Initializer{
@@ -16,7 +19,7 @@ public:
     Constant(float c){
         this->c = c;
     }
-    vector<vector<float>> initialize(unsigned int w, unsigned int h);
+    float_batch initialize(unsigned int w, unsigned int h);
 
 private:
     float c = 0;
@@ -24,7 +27,7 @@ private:
 
 class RandomUniform : public Initializer{
 public:
-    vector<vector<float>> initialize(unsigned int w, unsigned int h);
+    float_batch initialize(unsigned int w, unsigned int h);
 
 private:
     std::random_device rd;
