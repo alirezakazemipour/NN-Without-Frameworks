@@ -4,7 +4,7 @@
 - [ ] PyPI page
 - [x] Java language support for Regression
 - [x] CPP language Support for Regression
-- [ ] Xavier and He initializers
+- [x] Xavier and He initializers
 - [ ] Batchnorm
 - [ ] Regularization
 - [ ] CNN support
@@ -12,6 +12,6 @@
 - [ ] DQN
 - [ ] Classification
 - [ ] Docker Support
-- [ ] Acknowledgements
+- [x] Acknowledgements
 - [x] Invite to contribute
-- [ ] Add maths references
+- [x] Add maths references

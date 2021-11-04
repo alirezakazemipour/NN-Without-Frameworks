@@ -19,7 +19,7 @@ class MyNet extends Module{
         this.output = new Dense(10,
                 1,
                 "linear",
-                "random_uniform",
+                "xavier_uniform",
                 "zeros");
         this.layers.add(this.output);
     }

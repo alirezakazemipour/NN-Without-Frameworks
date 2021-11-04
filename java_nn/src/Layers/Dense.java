@@ -4,22 +4,21 @@ import Initializers.*;
 import Utils.*;
 import Activations.*;
 
-import java.util.*;
-
 
 public class Dense implements Layer {
     public float[][] W, dW;
     public float[][] b, db;
     int in_features;
     int out_features;
-    String weight_initializer = "random_uniform";
+    String weight_initializer = "xavier_uniform";
     String bias_initializer = "zeros";
     Utils utils = new Utils();
     Linear linear = new Linear();
     ReLU relu = new ReLU();
     String act_name = "linear";
+    XavierUniform xavier_uniform = new XavierUniform();
     RandomUniform random_uniform = new RandomUniform();
-    Constant zeros = new Constant(0.1F);
+    Constant zeros = new Constant(0.0F);
     float[][] input, z;
 
     public Dense(int in_features,
@@ -35,6 +34,9 @@ public class Dense implements Layer {
 
         if (weight_initializer.equals("random_uniform")) {
             this.W = this.random_uniform.initialize(this.in_features, this.out_features);
+        }
+        else if (weight_initializer.equals("xavier_uniform")) {
+            this.W = this.xavier_uniform.initialize(this.in_features, this.out_features);
         }
         if (bias_initializer.equals("zeros")) {
             this.b = this.zeros.initialize(1, this.out_features);
