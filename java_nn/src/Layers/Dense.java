@@ -32,11 +32,17 @@ public class Dense implements Layer {
         this.weight_initializer = weight_initializer;
         this.bias_initializer = bias_initializer;
 
+        HeNormal he_normal = new HeNormal(activation, "fan_in");
+
+
         if (weight_initializer.equals("random_uniform")) {
             this.W = this.random_uniform.initialize(this.in_features, this.out_features);
         }
         else if (weight_initializer.equals("xavier_uniform")) {
             this.W = this.xavier_uniform.initialize(this.in_features, this.out_features);
+        }
+        else{
+            this.W = he_normal.initialize(this.in_features, this.out_features);
         }
         if (bias_initializer.equals("zeros")) {
             this.b = this.zeros.initialize(1, this.out_features);

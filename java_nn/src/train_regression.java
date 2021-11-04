@@ -13,7 +13,7 @@ class MyNet extends Module{
         this.hidden1 = new Dense(this.in_features,
                 10,
                 "relu",
-                "random_uniform",
+                "he_normal",
                 "zeros");
         this.layers.add(this.hidden1);
         this.output = new Dense(10,
