@@ -2,7 +2,6 @@ package Optimizers;
 
 import Layers.Dense;
 import Utils.Utils;
-
 import java.util.ArrayList;
 
 public class RMSProp extends Optimizer {

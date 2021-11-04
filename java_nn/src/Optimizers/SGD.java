@@ -1,7 +1,6 @@
 package Optimizers;
 
 import java.util.ArrayList;
-
 import Layers.Dense;
 import Utils.Utils;
 

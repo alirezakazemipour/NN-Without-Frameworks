@@ -46,7 +46,8 @@ public class train_regression {
 //        SGD opt = new SGD(0.3F, my_net.layers);
 //        Momentum opt = new Momentum(my_net.layers,0.3F, 0.9F);
 //        RMSProp opt = new RMSProp(my_net.layers, 0.01F, 0.99F);
-        AdaGrad opt = new AdaGrad(my_net.layers, 0.1F);
+//        AdaGrad opt = new AdaGrad(my_net.layers, 0.1F);
+        Adam opt = new Adam(my_net.layers, 0.001F, 0.9F, 0.999F);
         for (int epoch = 0; epoch < 1000; epoch++){
             float[][] y = my_net.forward(x);
             Loss loss = mse.apply(y, t);
