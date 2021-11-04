@@ -35,6 +35,8 @@ public class train_regression {
     public static void main(String[] args) {
         Random random = new Random();
         random.setSeed(1);
+        int num_epoch = 1000;
+        int batch_size = 200;
 
         float[][] x = new float[200][1], t = new float[200][1];
         for(int i = -100; i < 100; i++){
@@ -43,17 +45,28 @@ public class train_regression {
         }
         MyNet my_net = new MyNet(1);
         MSELoss mse = new MSELoss();
-//        SGD opt = new SGD(0.3F, my_net.layers);
-//        Momentum opt = new Momentum(my_net.layers,0.3F, 0.9F);
-//        RMSProp opt = new RMSProp(my_net.layers, 0.01F, 0.99F);
-//        AdaGrad opt = new AdaGrad(my_net.layers, 0.1F);
         Adam opt = new Adam(my_net.layers, 0.001F, 0.9F, 0.999F);
-        for (int epoch = 0; epoch < 1000; epoch++){
-            float[][] y = my_net.forward(x);
-            Loss loss = mse.apply(y, t);
+        float smoothed_loss =0;
+        boolean smoothed_flag = false;
+        for (int epoch = 0; epoch < num_epoch; epoch++){
+            float[][] batch = new float[batch_size][0], target = new float[batch_size][1];
+            for (int i = 0; i <batch_size; i++){
+                int idx = random.nextInt(0, x.length);
+                batch[i] = x[idx];
+                target[i] = t[idx];
+            }
+            float[][] y = my_net.forward(batch);
+            Loss loss = mse.apply(y, target);
             my_net.backward(loss);
             opt.apply();
-            System.out.println("Step: " + epoch +" | loss: " + loss.value);
+            if(!smoothed_flag){
+                smoothed_loss = loss.value;
+                smoothed_flag = true;
+            }
+            else {
+                smoothed_loss = (float)(0.9 * smoothed_loss + 0.1 * loss.value);
+            }
+            System.out.println("Step: " + epoch +" | loss: " + smoothed_loss);
         }
     }
 }
