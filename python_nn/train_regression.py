@@ -34,7 +34,7 @@ batch_size = 64
 
 my_net = MyNet(1)
 mse = nn.losses.MSELoss()
-opt = nn.optims.RMSProp(my_net.parameters, lr=0.002)
+opt = nn.optims.SGD(my_net.parameters, lr=0.002)
 loss_history = []
 for epoch in range(epoch):
     batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
