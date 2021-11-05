@@ -16,13 +16,18 @@ class MyNet(nn.Module):
                                        out_features=100,
                                        activation=nn.acts.ReLU(),
                                        weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-                                       bias_initializer=nn.inits.Constant(0.)
+                                       bias_initializer=nn.inits.Constant(0.),
+                                       regularizer_type="l2",
+                                       lam=1e-3
                                        )
 
         self.output = nn.layers.Dense(in_features=100,
                                       out_features=self.out_dim,
                                       weight_initializer=nn.inits.XavierUniform(),
-                                      bias_initializer=nn.inits.Constant(0.))
+                                      bias_initializer=nn.inits.Constant(0.),
+                                      regularizer_type="l2",
+                                      lam=1e-3
+                                      )
 
     def forward(self, x):
         x = self.hidden1(x)
@@ -36,6 +41,9 @@ num_samples = 100  # number of points per class
 num_features = 2
 num_classes = 3  # number of classes
 
+epoch = 1000
+batch_size = 64
+
 x = [[None for _ in range(num_features)] for _ in range(num_classes * num_samples)]
 t = [[None] for _ in range(num_classes * num_samples)]
 
@@ -46,12 +54,6 @@ for j in range(num_classes):
         x[idx][0] = radius * np.sin(angle)
         x[idx][1] = radius * np.cos(angle)
         t[idx][0] = j
-
-# plt.scatter(np.array(x)[:, 0], np.array(x)[:, 1], c=np.array(t), s=40, cmap=plt.cm.Spectral)
-# plt.show()
-
-epoch = 4000
-batch_size = 64
 
 my_net = MyNet(num_features, num_classes)
 ce_loss = nn.losses.CrossEntropyLoss()
@@ -65,17 +67,24 @@ for step in range(epoch):
         target[i] = t[idx]
     y = my_net(batch)
     loss = ce_loss(y, target)
-    loss_history.append(loss.value)
+    tot_loss = loss.value + \
+               0.5 * my_net.hidden1.lam * np.sum(my_net.hidden1.vars["W"] ** 2) + \
+               0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
+    loss_history.append(tot_loss)
     my_net.backward(loss)
     opt.apply()
-    if step % 5 == 0:
-        print("Step: %i | loss: %.5f" % (step, loss.value))
+    if step % 10 == 0:
+        print("Step: %i | loss: %.5f" % (step, tot_loss))
 
-# plt.scatter(x, t, s=20)
 y = my_net.forward(x)
-# plt.plot(x, y, c="red", lw=3)
-# plt.show()
 predicted_class = np.argmax(y, axis=1)
 print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t).squeeze(-1))))
 plt.plot(np.arange(len(loss_history)), loss_history)
+plt.figure()
+plt.subplot(121)
+plt.title("predicted classes")
+plt.scatter(np.array(x)[:, 0], np.array(x)[:, 1], c=np.array(predicted_class), s=40, cmap=plt.cm.Spectral)
+plt.subplot(122)
+plt.title("real classes")
+plt.scatter(np.array(x)[:, 0], np.array(x)[:, 1], c=np.array(t), s=40, cmap=plt.cm.Spectral)
 plt.show()
