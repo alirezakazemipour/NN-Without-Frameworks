@@ -54,7 +54,8 @@ int main()
     }
     MyNet my_net = MyNet{1};
     MSELoss mse{};
-    SGD opt(0.3, my_net.parameters);
+    Momentum opt(0.2, 0.8, my_net.parameters);
+//    SGD opt(0.3, my_net.parameters);
     float_batch y;
 
     for(int epoch = 0; epoch < 1000; epoch++){

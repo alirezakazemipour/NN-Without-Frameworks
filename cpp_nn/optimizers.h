@@ -26,4 +26,15 @@ public:
 
 };
 
+class Momentum : public Optimizer
+{
+public:
+    Utils utils;
+    float mu;
+    vector<float_batch> gW, gb;
+    Momentum(float lr, float mu, vector<Dense*> &params);
+    void apply();
+
+};
+
 #endif // OPTIMIZER_H
