@@ -17,16 +17,16 @@ class MyNet(nn.Module):
                                        activation=nn.acts.ReLU(),
                                        weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
                                        bias_initializer=nn.inits.Constant(0.),
-                                       regularizer_type="l2",
-                                       lam=1e-3
+                                       # regularizer_type="l2",
+                                       # lam=1e-3
                                        )
 
         self.output = nn.layers.Dense(in_features=100,
                                       out_features=self.out_dim,
                                       weight_initializer=nn.inits.XavierUniform(),
                                       bias_initializer=nn.inits.Constant(0.),
-                                      regularizer_type="l2",
-                                      lam=1e-3
+                                      # regularizer_type="l2",
+                                      # lam=1e-3
                                       )
 
     def forward(self, x):

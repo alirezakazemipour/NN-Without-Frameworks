@@ -6,18 +6,19 @@ import java.util.Random;
 import java.lang.Math;
 
 class MyNet extends Module{
-    int in_features = 0;
+    int in_features = 0, out_features = 0;
     Dense hidden1, output;
-    public MyNet(int in_features){
+    public MyNet(int in_features, int out_features){
         this.in_features = in_features;
+        this.out_features = out_features;
         this.hidden1 = new Dense(this.in_features,
-                10,
+                100,
                 "relu",
                 "he_normal",
                 "zeros");
         this.layers.add(this.hidden1);
-        this.output = new Dense(10,
-                1,
+        this.output = new Dense(100,
+                out_features,
                 "linear",
                 "xavier_uniform",
                 "zeros");
@@ -43,7 +44,7 @@ public class train_regression {
             x[i + 100][0] = 0.01F * i;
             t[i + 100][0] = (float) Math.pow(x[i + 100][0], 2) + (float)(random.nextGaussian() * 0.1);
         }
-        MyNet my_net = new MyNet(1);
+        MyNet my_net = new MyNet(1, 1);
         MSELoss mse = new MSELoss();
         Adam opt = new Adam(my_net.layers, 0.001F, 0.9F, 0.999F);
         float smoothed_loss =0;
