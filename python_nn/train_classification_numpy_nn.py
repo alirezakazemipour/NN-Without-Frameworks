@@ -41,7 +41,7 @@ num_samples = 100  # number of points per class
 num_features = 2
 num_classes = 3  # number of classes
 
-epoch = 1000
+epoch = 500
 batch_size = 64
 
 x = [[None for _ in range(num_features)] for _ in range(num_classes * num_samples)]
@@ -59,6 +59,7 @@ my_net = MyNet(num_features, num_classes)
 ce_loss = nn.losses.CrossEntropyLoss()
 opt = nn.optims.SGD(my_net.parameters, lr=1.)
 loss_history = []
+smoothed_loss = 0
 for step in range(epoch):
     batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
     for i in range(batch_size):
@@ -70,7 +71,11 @@ for step in range(epoch):
     tot_loss = loss.value + \
                0.5 * my_net.hidden1.lam * np.sum(my_net.hidden1.vars["W"] ** 2) + \
                0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
-    loss_history.append(tot_loss)
+    if step == 0:
+        smoothed_loss = tot_loss
+    else:
+        smoothed_loss = 0.9 * smoothed_loss + 0.1 * tot_loss
+    loss_history.append(smoothed_loss)
     my_net.backward(loss)
     opt.apply()
     if step % 10 == 0:
