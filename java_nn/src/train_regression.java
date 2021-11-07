@@ -15,13 +15,17 @@ class MyNet extends Module{
                 100,
                 "relu",
                 "he_normal",
-                "zeros");
+                "zeros",
+                "l2",
+                0.001F);
         this.layers.add(this.hidden1);
         this.output = new Dense(100,
                 out_features,
                 "linear",
                 "xavier_uniform",
-                "zeros");
+                "zeros",
+                "l2",
+                0.001F);
         this.layers.add(this.output);
     }
 

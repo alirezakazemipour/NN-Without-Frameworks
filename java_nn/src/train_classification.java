@@ -2,9 +2,11 @@ import Losses.Loss;
 import Losses.*;
 import Optimizers.*;
 import java.util.Random;
+import Utils.*;
 
 public class train_classification {
     public static void main(String[] args) {
+        Utils utils = new Utils();
         Random random = new Random();
         random.setSeed(1);
         int num_samples = 100;
@@ -39,9 +41,9 @@ public class train_classification {
         MyNet my_net = new MyNet(num_features, num_classes);
         CrossEntropyLoss mse = new CrossEntropyLoss();
         SGD opt = new SGD(1.0F, my_net.layers);
-        float smoothed_loss = 0;
+        float smoothed_loss = 0, total_loss = 0;
         boolean smoothed_flag = false;
-        float[][] y = new float[batch_size][num_classes];
+        float[][] y;
         for (int epoch = 0; epoch < num_epoch; epoch++) {
             float[][] batch = new float[batch_size][0], target = new float[batch_size][1];
             for (int i = 0; i < batch_size; i++) {
@@ -53,11 +55,23 @@ public class train_classification {
             Loss loss = mse.apply(y, target);
             my_net.backward(loss);
             opt.apply();
+            float reg_loss = 0.0F;
+            for(int i = 0; i < my_net.layers.size(); i++){
+                float norm2_W = 0;
+                int w = my_net.layers.get(i).W.length, h = my_net.layers.get(i).W[0].length;
+                for (int k = 0; k < w; k++){
+                    for (int l = 0; l < h; l++){
+                        norm2_W += Math.pow(my_net.layers.get(i).W[k][l], 2);
+                    }
+                }
+                reg_loss += 0.5 * my_net.layers.get(i).lam * norm2_W;
+            }
+            total_loss = loss.value + reg_loss;
             if (!smoothed_flag) {
-                smoothed_loss = loss.value;
+                smoothed_loss = total_loss;
                 smoothed_flag = true;
             } else {
-                smoothed_loss = (float) (0.9 * smoothed_loss + 0.1 * loss.value);
+                smoothed_loss = (float) (0.9 * smoothed_loss + 0.1 * total_loss);
             }
             System.out.println("Step: " + epoch + " | loss: " + smoothed_loss);
         }

@@ -12,6 +12,8 @@ public class Dense implements Layer {
     int out_features;
     String weight_initializer = "xavier_uniform";
     String bias_initializer = "zeros";
+    String regularizer_type = null;
+    public float lam = 0.0F;
     Utils utils = new Utils();
     Linear linear = new Linear();
     ReLU relu = new ReLU();
@@ -25,23 +27,24 @@ public class Dense implements Layer {
                  int out_features,
                  String activation,
                  String weight_initializer,
-                 String bias_initializer) {
+                 String bias_initializer,
+                 String regularizer_type,
+                 float lam) {
         this.in_features = in_features;
         this.out_features = out_features;
         this.act_name = activation;
         this.weight_initializer = weight_initializer;
         this.bias_initializer = bias_initializer;
+        this.regularizer_type = regularizer_type;
+        this.lam = lam;
 
         HeNormal he_normal = new HeNormal(activation, "fan_in");
 
-
         if (weight_initializer.equals("random_uniform")) {
             this.W = this.random_uniform.initialize(this.in_features, this.out_features);
-        }
-        else if (weight_initializer.equals("xavier_uniform")) {
+        } else if (weight_initializer.equals("xavier_uniform")) {
             this.W = this.xavier_uniform.initialize(this.in_features, this.out_features);
-        }
-        else{
+        } else {
             this.W = he_normal.initialize(this.in_features, this.out_features);
         }
         if (bias_initializer.equals("zeros")) {
@@ -75,8 +78,7 @@ public class Dense implements Layer {
         float[][] dz;
         if (this.act_name.equals("relu")) {
             dz = this.utils.element_wise_mul(delta, this.relu.derivative(this.z));
-        }
-        else {
+        } else {
             dz = this.utils.element_wise_mul(delta, this.linear.derivative(this.z));
         }
 
@@ -84,15 +86,29 @@ public class Dense implements Layer {
         float[][] dw = this.utils.mat_mul(input_t, dz);
         this.dW = this.utils.rescale(dw, 1F / dz.length);
 
+        if (this.regularizer_type.equals("l2")){
+            this.dW = this.utils.mat_add(this.dW, this.utils.rescale(this.W, this.lam));
+        }
+        else if (this.regularizer_type.equals("l1")){
+            this.dW = this.utils.add_scalar(this.dW, this.lam);
+        }
+
         float[][] ones_t = new float[1][dz.length];
-        for(int i = 0; i < ones_t.length; i++){
-            for(int j = 0; j < ones_t[0].length; j++){
+        for (int i = 0; i < ones_t.length; i++) {
+            for (int j = 0; j < ones_t[0].length; j++) {
                 ones_t[i][j] = 1;
             }
         }
 
         float[][] db = utils.mat_mul(ones_t, dz);
         this.db = this.utils.rescale(db, 1F / dz.length);
+
+        if (this.regularizer_type.equals("l2")){
+            this.db = this.utils.mat_add(this.db, this.utils.rescale(this.b, this.lam));
+        }
+        else if (this.regularizer_type.equals("l1")){
+            this.db = this.utils.add_scalar(this.db, this.lam);
+        }
 
         float[][] w_t = this.utils.transpose(this.W);
         delta = this.utils.mat_mul(dz, w_t);
