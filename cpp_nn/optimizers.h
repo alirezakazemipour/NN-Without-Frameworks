@@ -52,4 +52,13 @@ public:
 
 };
 
+class AdaGrad : public Optimizer
+{
+public:
+    Utils utils;
+    vector<float_batch> sW, sb;
+    AdaGrad(float lr, vector<Dense*> &params);
+    void apply();
+
+};
 #endif // OPTIMIZER_H
