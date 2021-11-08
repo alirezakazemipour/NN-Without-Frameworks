@@ -9,6 +9,39 @@ Each network/config is implemented in 4 formats while trying to mimic [PyTorch's
 3. In java
 4. in C++
 
+## What is currently supported? (equally in all languages and formats)
+Layers:
+- Fully Connected
+
+Activations:
+- Linear
+- ReLU
+
+Loss functions:
+- MSE 
+- Cross Entropy
+
+Weight Initializers:
+- Xavier Uniform (aka Glorot)
+- He Normal (aka Kaiming Normal)
+
+bias initializer:
+- Constant (zero)
+
+Optimizers:
+- SGD
+- SGD + Momentum
+- RMSProp
+- AdaGrad
+- Adam
+
+Regularizer:
+- l1
+- l2
+
+
+
+
 ## Examples
 
 Each directory contains a `train_regression.*` and a `train_classification.*` that perform tests of correctness and functionality according to their corresponding format and language. You can execute them to get a sense of what is going on.
