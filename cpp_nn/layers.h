@@ -28,6 +28,7 @@ public:
 
     RandomUniform random_uniform;
     Constant zeros{0.0};
+    XavierUniform xavier_uniform;
     Utils utils;
     Linear linear;
     ReLU relu;
@@ -39,7 +40,15 @@ public:
         this->bias_initializer = bias_initialzer;
         this->activation = activation;
 
-        if (!weight_initializer.compare("random_uniform")){
+        HeNormal he_normal(this->activation, "fan_in");
+
+        if (!weight_initializer.compare("xavier_uniform")){
+            this->W = this->xavier_uniform.initialize(this->in_features, this->out_features);
+        }
+        else if (!weight_initializer.compare("he_normal")){
+            this->W = he_normal.initialize(this->in_features, this->out_features);
+        }
+        else{
             this->W = this->random_uniform.initialize(this->in_features, this->out_features);
         }
         if (!bias_initializer.compare("zeros")) {

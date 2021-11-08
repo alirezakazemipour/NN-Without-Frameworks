@@ -17,13 +17,13 @@ public:
         this->hidden = new Dense{this->in_features,
                 10,
                 "relu",
-                "random_uniform",
+                "he_normal",
                 "zeros"};
         this->parameters.push_back(this->hidden);
         this->output = new Dense{10,
                 1,
                 "linear",
-                "random_uniform",
+                "xavier_uniform",
                 "zeros"};
         this->parameters.push_back(this->output);
     }
@@ -37,7 +37,6 @@ public:
 
 int main()
 {
-    cout << "Hello World!" << endl;
     float_batch x(200, vector<float>(1, 1));
     float_batch t(200, vector<float>(1, 1));
 
