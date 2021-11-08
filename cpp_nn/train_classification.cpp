@@ -20,14 +20,18 @@ public:
                 100,
                 "relu",
                 "he_normal",
-                "zeros"};
+                "zeros",
+                "l2",
+                0.001};
         this->parameters.push_back(this->hidden);
 
         this->output = new Dense{100,
                 this->out_features,
                 "linear",
                 "xavier_uniform",
-                "zeros"};
+                "zeros",
+                "l2",
+                0.001};
         this->parameters.push_back(this->output);
     }
     float_batch forward(const float_batch &input){
@@ -94,7 +98,19 @@ int main()
         my_net.backward(loss);
         opt.apply();
 
-        total_loss = loss.value;
+        float reg_loss = 0;
+        for(size_t i = 0; i < my_net.parameters.size(); i++){
+            float norm2_W = 0;
+            int w = my_net.parameters[i]->W.size(), h = my_net.parameters[i]->W[0].size();
+            for (int k = 0; k < w; k++){
+                for (int l = 0; l < h; l++){
+                    norm2_W += pow(my_net.parameters[i]->W[k][l], 2);
+                }
+            }
+            reg_loss += 0.5 * my_net.parameters[i]->lambda * norm2_W;
+        }
+
+        total_loss = loss.value + reg_loss;
         if (!smoothed_flag) {
             smoothed_loss = total_loss;
             smoothed_flag = true;

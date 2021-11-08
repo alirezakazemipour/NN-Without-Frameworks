@@ -30,6 +30,13 @@ float_batch Dense::backward(float_batch &delta)
     float_batch dw = this->utils.mat_mul(input_t, dz);
     this->dW = this->utils.rescale(dw, 1.0 / dz.size());
 
+    if (!this->regularization_type.compare("l2")){
+        this->dW = this->utils.mat_add(this->dW, this->utils.rescale(this->W, this->lambda));
+    }
+    else if(!this->regularization_type.compare("l1")){
+        this->dW = this->utils.add_scalar(this->dW, this->lambda);
+    }
+
     float_batch ones_t(1, vector<float>(dz.size(), 1));
     for(size_t i = 0; i < ones_t.size(); i++){
         for(size_t j = 0; j < ones_t[0].size(); j++){

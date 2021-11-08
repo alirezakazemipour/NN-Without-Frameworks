@@ -6,12 +6,14 @@
 - [x] CPP language Support for Regression
 - [x] Xavier and He initializers
 - [ ] Batchnorm
-- [ ] Regularization
+- [x] Regularization
 - [ ] CNN support
 - [ ] Dropout
 - [ ] DQN
-- [ ] Classification
+- [x] Classification
 - [ ] Docker Support
 - [x] Acknowledgements
 - [x] Invite to contribute
 - [x] Add maths references
+- [ ]  Make the Readme more expressive
+

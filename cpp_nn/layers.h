@@ -21,9 +21,11 @@ class Dense : public Layer{
 public:
     float_batch W, dW, b, db;
     int in_features, out_features;
-    std::string weight_initializer;
-    std::string bias_initializer;
-    std::string activation = "linear";
+    string weight_initializer;
+    string bias_initializer;
+    string activation = "linear";
+    string regularization_type;
+    float lambda;
     float_batch input, z;
 
     RandomUniform random_uniform;
@@ -33,12 +35,20 @@ public:
     Linear linear;
     ReLU relu;
 
-    Dense(int in_features, int out_features, std::string activation, std::string weight_initializer, std::string bias_initialzer){
+    Dense(int in_features, int out_features,
+          string activation,
+          string weight_initializer,
+          string bias_initialzer,
+          string regularization_type,
+          float lambda
+          ){
         this->in_features = in_features;
         this->out_features = out_features;
         this->weight_initializer = weight_initializer;
         this->bias_initializer = bias_initialzer;
         this->activation = activation;
+        this->regularization_type = regularization_type;
+        this->lambda = lambda;
 
         HeNormal he_normal(this->activation, "fan_in");
 
