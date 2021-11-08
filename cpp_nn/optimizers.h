@@ -61,4 +61,17 @@ public:
     void apply();
 
 };
+
+class Adam : public Optimizer
+{
+public:
+    Utils utils;
+    float beta1=0.9, beta2=0.999;
+    int k = 1;
+    vector<float_batch> mW, vW, mb, vb;
+    Adam(float lr, float beta1, float beta2, vector<Dense*> &params);
+    void apply();
+
+};
+
 #endif // OPTIMIZER_H

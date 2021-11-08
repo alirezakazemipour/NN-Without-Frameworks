@@ -109,8 +109,8 @@ class Adam(Optimizer, ABC):
         for param in self.params.values():
             param["mW"] = mat_add(rescale(param["dW"], 1 - self.beta1), rescale(param["mW"], self.beta1))
             param["vW"] = mat_add(rescale(element_wise_mul(param["dW"], param["dW"]), 1 - self.beta2), rescale(param["vW"], self.beta2))
-            mw_hat = rescale(param["mW"], 1 - self.beta1 ** self.k)
-            vw_hat = rescale(param["vW"], 1 - self.beta2 ** self.k)
+            mw_hat = rescale(param["mW"],  1 / (1 - self.beta1 ** self.k))
+            vw_hat = rescale(param["vW"], 1 / (1 - self.beta2 ** self.k))
             grad_step_w = element_wise_mul(mw_hat, element_wise_rev(add_scalar(mat_sqrt(vw_hat), self.eps)))
             param["W"] = mat_add(param["W"], rescale(grad_step_w, -self.lr))
 

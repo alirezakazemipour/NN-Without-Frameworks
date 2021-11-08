@@ -33,8 +33,8 @@ public class Adam extends Optimizer{
                     1 - this.beta1), utils.rescale(this.mW.get(i), this.beta1)));
             this.vW.set(i, utils.mat_add(utils.rescale(utils.element_wise_mul(this.parameters.get(i).dW, this.parameters.get(i).dW),
                     1 - this.beta2), utils.rescale(this.vW.get(i), this.beta2)));
-            float[][] mW_hat = utils.rescale(this.mW.get(i), (float)(1 - Math.pow(this.beta1, this.k)));
-            float[][] vW_hat = utils.rescale(this.vW.get(i), (float)(1 - Math.pow(this.beta2, this.k)));
+            float[][] mW_hat = utils.rescale(this.mW.get(i), 1 / (float)(1 - Math.pow(this.beta1, this.k)));
+            float[][] vW_hat = utils.rescale(this.vW.get(i), 1 / (float)(1 - Math.pow(this.beta2, this.k)));
             float[][] grad_step_w = utils.element_wise_mul(mW_hat,
                     utils.element_wise_rev(utils.add_scalar(utils.mat_sqrt(vW_hat), this.eps)));
             this.parameters.get(i).W = utils.mat_add(this.parameters.get(i).W, utils.rescale(grad_step_w, -this.lr));
