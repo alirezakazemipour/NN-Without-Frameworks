@@ -68,6 +68,18 @@ float_batch Utils::rescale(float_batch A, float scale)
     return temp;
 }
 
+float_batch Utils::add_scalar(float_batch A, float scalar)
+{
+    unsigned int n = A.size(), m = A[0].size();
+    float_batch temp(n, vector<float>(m, 1));
+    for(unsigned int i = 0; i < n; i++){
+        for(unsigned int j = 0; j < m; j++){
+            temp[i][j] = A[i][j] + scalar;
+        }
+    }
+    return temp;
+}
+
 float_batch Utils::transpose(float_batch A)
 {
     unsigned int n = A.size(), m = A[0].size();
@@ -76,6 +88,32 @@ float_batch Utils::transpose(float_batch A)
     for(unsigned int i = 0; i < m; i++){
         for(unsigned int j = 0; j < n; j++){
             temp[i][j] = A[j][i];
+        }
+    }
+    return temp;
+
+}
+
+float_batch Utils::element_wise_sqrt(float_batch A)
+{
+    unsigned int n = A.size(), m = A[0].size();
+    float_batch temp(n, vector<float>(m, 1));
+    for(unsigned int i = 0; i < n; i++){
+        for(unsigned int j = 0; j < m; j++){
+            temp[i][j] = sqrt(A[i][j]);
+        }
+    }
+    return temp;
+
+}
+
+float_batch Utils::element_wise_rev(float_batch A)
+{
+    unsigned int n = A.size(), m = A[0].size();
+    float_batch temp(n, vector<float>(m, 1));
+    for(unsigned int i = 0; i < n; i++){
+        for(unsigned int j = 0; j < m; j++){
+            temp[i][j] =  1 / A[i][j];
         }
     }
     return temp;

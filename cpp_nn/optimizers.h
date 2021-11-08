@@ -4,6 +4,9 @@
 #include <vector>
 #include <layers.h>
 #include <utils.h>
+#include <math.h>
+
+# define eps 0.00000001
 
 using namespace std;
 
@@ -33,6 +36,18 @@ public:
     float mu;
     vector<float_batch> gW, gb;
     Momentum(float lr, float mu, vector<Dense*> &params);
+    void apply();
+
+};
+
+class RMSProp : public Optimizer
+{
+public:
+    Utils utils;
+    float beta=0.99;
+
+    vector<float_batch> sW, sb;
+    RMSProp(float lr, float beta, vector<Dense*> &params);
     void apply();
 
 };
