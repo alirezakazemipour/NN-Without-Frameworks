@@ -53,10 +53,10 @@ int main()
     }
     MyNet my_net = MyNet{1};
     MSELoss mse{};
-//    Momentum opt(0.2, 0.8, my_net.parameters);
-//    SGD opt(0.3, my_net.parameters);
-//    RMSProp opt(0.01, 0.99, my_net.parameters);
-//    AdaGrad opt(0.05, my_net.parameters);
+    //    Momentum opt(0.2, 0.8, my_net.parameters);
+    //    SGD opt(0.3, my_net.parameters);
+    //    RMSProp opt(0.01, 0.99, my_net.parameters);
+    //    AdaGrad opt(0.05, my_net.parameters);
     Adam opt(0.003, 0.9, 0.999, my_net.parameters);
     float_batch y;
 

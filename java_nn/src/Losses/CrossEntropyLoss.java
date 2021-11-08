@@ -16,7 +16,7 @@ public class CrossEntropyLoss extends LossFunc {
     public Loss apply(float[][] pred, float[][] target) {
         this.pred = pred;
         this.target = target;
-        int w = pred.length, h = pred[0].length;
+        int w = pred.length;
         float[][] probs = this.soft_max(pred);
         float loss = 0;
         for (int i = 0; i < w; i++) {

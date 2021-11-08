@@ -4,6 +4,7 @@
 #include <vector>
 #include <math.h>
 #include <utils.h>
+#include <limits>
 
 using namespace std;
 
@@ -32,5 +33,14 @@ public:
     Utils utils;
     Loss apply(float_batch pred, float_batch target);
     float_batch delta();
+};
+
+class CrossEntropyLoss : LossFunc
+{
+public:
+    Utils utils;
+    Loss apply(float_batch pred, float_batch target);
+    float_batch delta();
+    float_batch soft_max(float_batch x);
 };
 #endif // LOSS_H

@@ -8,9 +8,10 @@ SOURCES += \
         initializers.cpp \
         layers.cpp \
         losses.cpp \
-        main.cpp \
         module.cpp \
         optimizers.cpp \
+        train_classification.cpp \
+        train_regression.cpp \
         utils.cpp
 
 HEADERS += \

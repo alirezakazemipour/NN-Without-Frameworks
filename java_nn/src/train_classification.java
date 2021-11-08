@@ -45,7 +45,7 @@ public class train_classification {
         boolean smoothed_flag = false;
         float[][] y;
         for (int epoch = 0; epoch < num_epoch; epoch++) {
-            float[][] batch = new float[batch_size][0], target = new float[batch_size][1];
+            float[][] batch = new float[batch_size][num_features], target = new float[batch_size][1];
             for (int i = 0; i < batch_size; i++) {
                 int idx = random.nextInt(0, x.length);
                 batch[i] = x[idx];
