@@ -39,7 +39,7 @@ public class train_classification {
         }
 
         MyNet my_net = new MyNet(num_features, num_classes);
-        CrossEntropyLoss mse = new CrossEntropyLoss();
+        CrossEntropyLoss celoss = new CrossEntropyLoss();
         SGD opt = new SGD(1.0F, my_net.layers);
         float smoothed_loss = 0, total_loss = 0;
         boolean smoothed_flag = false;
@@ -52,7 +52,7 @@ public class train_classification {
                 target[i] = t[idx];
             }
             y = my_net.forward(batch);
-            Loss loss = mse.apply(y, target);
+            Loss loss = celoss.apply(y, target);
             my_net.backward(loss);
             opt.apply();
             float reg_loss = 0.0F;
