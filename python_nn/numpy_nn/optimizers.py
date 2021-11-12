@@ -42,7 +42,7 @@ class Momentum(Optimizer, ABC):
 
 
 class RMSProp(Optimizer, ABC):
-    def __init__(self, params, lr, beta=0.99, eps=1e-8):
+    def __init__(self, params, lr=0.01, beta=0.99, eps=1e-8):
         super(RMSProp, self).__init__(params, lr)
         self.beta = beta
         self.eps = eps

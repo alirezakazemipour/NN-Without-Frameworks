@@ -1,4 +1,4 @@
-import python_nn.pure_nn as nn
+import python_nn.numpy_nn as nn
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -8,20 +8,21 @@ class MyNet(nn.Module):
     def __init__(self, input_dim):
         super().__init__()
         self.input_dim = input_dim
-        self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
-                                       out_features=10,
-                                       activation=nn.acts.ReLU(),
-                                       weight_initializer=nn.inits.HeNormal(non_linearity=nn.acts.ReLU()),
-                                       bias_initializer=nn.inits.Constant(0.)
-                                       )
-
+        self.hidden = nn.layers.Dense(in_features=self.input_dim,
+                                      out_features=10,
+                                      activation=nn.acts.ReLU(),
+                                      weight_initializer=nn.inits.HeNormal(non_linearity=nn.acts.ReLU()),
+                                      bias_initializer=nn.inits.Constant(0.)
+                                      )
+        self.bn = nn.layers.BatchNorm1d(10)
         self.output = nn.layers.Dense(in_features=10,
                                       out_features=1,
                                       weight_initializer=nn.inits.XavierUniform(),
                                       bias_initializer=nn.inits.Constant(0.))
 
     def forward(self, x):
-        x = self.hidden1(x)
+        x = self.hidden(x)
+        x = self.bn(x)
         return self.output(x)
 
 
@@ -34,7 +35,7 @@ batch_size = 64
 
 my_net = MyNet(1)
 mse = nn.losses.MSELoss()
-opt = nn.optims.SGD(my_net.parameters, lr=0.002)
+opt = nn.optims.Adam(my_net.parameters)
 loss_history = []
 for epoch in range(epoch):
     batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
