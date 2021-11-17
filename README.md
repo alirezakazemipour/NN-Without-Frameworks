@@ -1,4 +1,4 @@
- [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) 
+ [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![build](https://github.com/alirezakazemipour/NN-Without-Frameworks/actions/workflows/manual-ci.yml/badge.svg)](https://github.com/alirezakazemipour/NN-Without-Frameworks/actions/workflows/manual-ci.yml)
 
 # NN-Without-Frameworks
 This project aims to implement different Neural Network configuration **without** using scientific frameworks like **TensorFlow** or **PyTorch**.
