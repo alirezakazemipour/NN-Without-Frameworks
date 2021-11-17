@@ -1,7 +1,7 @@
 """
 Reference: https://cs231n.github.io/neural-networks-case-study/#grad
 """
-import python_nn.numpy_nn as nn
+import numpy_nn as nn
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -29,9 +29,9 @@ class MyNet(nn.Module):
                                       lam=1e-3
                                       )
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         x = self.hidden(x)
-        x = self.bn(x)
+        x = self.bn(x, eval)
         return self.output(x)
 
 
@@ -44,7 +44,7 @@ num_classes = 3  # number of classes
 
 epoch = 500
 batch_size = 64
-lr = 1
+lr = 0.07
 
 x = [[None for _ in range(num_features)] for _ in range(num_classes * num_samples)]
 t = [[None] for _ in range(num_classes * num_samples)]
@@ -59,7 +59,7 @@ for j in range(num_classes):
 
 my_net = MyNet(num_features, num_classes)
 ce_loss = nn.losses.CrossEntropyLoss()
-opt = nn.optims.SGD(my_net.parameters, lr=lr)
+opt = nn.optims.Adam(my_net.parameters, lr=lr)
 loss_history = []
 smoothed_loss = 0
 for step in range(epoch):
@@ -83,7 +83,7 @@ for step in range(epoch):
     if step % 10 == 0:
         print("Step: %i | loss: %.5f" % (step, tot_loss))
 
-y = my_net.forward(x)
+y = my_net.forward(x, eval=True)
 predicted_class = np.argmax(y, axis=1)
 print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t).squeeze(-1))))
 plt.plot(np.arange(len(loss_history)), loss_history)

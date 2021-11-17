@@ -1,4 +1,4 @@
-import python_nn.numpy_nn as nn
+import numpy_nn as nn
 import matplotlib.pyplot as plt
 import random
 import numpy as np
@@ -20,9 +20,9 @@ class MyNet(nn.Module):
                                       weight_initializer=nn.inits.XavierUniform(),
                                       bias_initializer=nn.inits.Constant(0.))
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         x = self.hidden(x)
-        x = self.bn(x)
+        x = self.bn(x, eval)
         return self.output(x)
 
 

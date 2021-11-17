@@ -1,7 +1,5 @@
-from abc import ABC
-import numpy as np
-import python_nn.numpy_nn as nn
-
+from .initializers import *
+from .activations import *
 
 def supported_layers():
     return [x.__name__ for x in ParamLayer.__subclasses__()]
@@ -43,9 +41,9 @@ class ParamLayer(Layer, ABC):
 class Dense(ParamLayer, ABC):
     def __init__(self, in_features: int,
                  out_features: int,
-                 activation: nn.acts = nn.acts.Linear(),
-                 weight_initializer: nn.inits = nn.inits.RandomUniform(),
-                 bias_initializer: nn.inits = nn.inits.Constant(),
+                 activation: Activation = Linear(),
+                 weight_initializer: Initializer = RandomUniform(),
+                 bias_initializer: Initializer = Constant(),
                  regularizer_type: str = None,
                  lam: float = 0.
                  ):
@@ -97,8 +95,8 @@ class BatchNorm1d(ParamLayer, ABC):
     #  https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html
     def __init__(self, in_features: int):
         super().__init__(weight_shape=(1, in_features),
-                         weight_initializer=nn.initializers.Constant(1.),
-                         bias_initializer=nn.initializers.Constant(0.)
+                         weight_initializer=Constant(1.),
+                         bias_initializer=Constant(0.)
                          )
         self.in_features = in_features
         self.x_hat = None
@@ -138,5 +136,5 @@ class BatchNorm1d(ParamLayer, ABC):
             dx_hat * self.x_hat, axis=0, keepdims=True)) / (m * np.sqrt(self.std ** 2 + self.eps))
         return delta
 
-    def __call__(self, x):
-        return self.forward(x)
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)

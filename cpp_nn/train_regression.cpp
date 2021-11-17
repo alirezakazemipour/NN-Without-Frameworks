@@ -18,13 +18,17 @@ public:
                 10,
                 "relu",
                 "he_normal",
-                "zeros"};
+                "zeros",
+                "l2",
+                0.001};
         this->parameters.push_back(this->hidden);
         this->output = new Dense{10,
                 1,
                 "linear",
                 "xavier_uniform",
-                "zeros"};
+                "zeros",
+                "l2",
+                0.001};
         this->parameters.push_back(this->output);
     }
     float_batch forward(const float_batch &input){
@@ -89,6 +93,5 @@ int main()
 
     //            }
     //        }
-
     return 0;
 }

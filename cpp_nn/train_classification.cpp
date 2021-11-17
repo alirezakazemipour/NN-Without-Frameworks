@@ -140,9 +140,6 @@ int main()
         }
     }
     cout<<"training acc: " << float(true_positives) / float(batch_size) << endl;
-
-
-
-
     return 0;
+
 }
