@@ -15,5 +15,6 @@
 - [x] Acknowledgements
 - [x] Invite to contribute
 - [x] Add maths references
-- [ ]  Make the Readme more expressive
+- [x]  Make the Readme more expressive
+- [ ]  Add Checkpoint saving & restoring
 

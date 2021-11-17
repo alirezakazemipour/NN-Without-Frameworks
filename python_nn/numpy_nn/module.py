@@ -1,4 +1,5 @@
-import python_nn.numpy_nn as nn
+from .losses import Loss
+from .layers import Layer
 
 
 class Module:
@@ -6,10 +7,10 @@ class Module:
         self._parameters = {}
         self._layers = []
 
-    def __call__(self, x):
-        return self.forward(x)
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         raise NotImplementedError
 
     @property
@@ -17,14 +18,14 @@ class Module:
         return self._parameters
 
     def __setattr__(self, key, value):
-        if isinstance(value, nn.layers.Layer):
+        if isinstance(value, Layer):
             layer = value
             self._parameters[key] = layer.vars
             self._layers.append(value)
         object.__setattr__(self, key, value)
 
     def backward(self, loss):
-        assert isinstance(loss, nn.losses.Loss)
+        assert isinstance(loss, Loss)
         delta = loss.delta
         for name, layer in zip(list(self._parameters.keys())[::-1], self._layers[::-1]):
             delta = layer.backward(delta)
