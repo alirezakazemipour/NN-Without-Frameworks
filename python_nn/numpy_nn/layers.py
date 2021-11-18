@@ -1,6 +1,7 @@
 from .initializers import *
 from .activations import *
 
+
 def supported_layers():
     return [x.__name__ for x in ParamLayer.__subclasses__()]
 
