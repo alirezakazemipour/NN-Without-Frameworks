@@ -44,7 +44,7 @@ Regularizer:
 
 ## Examples
 
-Each directory contains a `train_regression.*` and a `train_classification.*` that perform tests of correctness and functionality according to their corresponding format and language. You can execute them to get a sense of what is going on.
+Each directory contains a `train.*` that performs tests of correctness and functionality according to its corresponding format and language. You can run it to get a sense of what is going on.
 
 <p>
 <img src="figures/regression.png" height=340/>

@@ -8,9 +8,9 @@ SOURCES += \
         initializers.cpp \
         layers.cpp \
         losses.cpp \
-        main.cpp \
         module.cpp \
         optimizers.cpp \
+        train.cpp \
         utils.cpp
 
 HEADERS += \

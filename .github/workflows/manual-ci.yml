@@ -18,10 +18,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: install numpy matplotlib
       run: pip install numpy matplotlib
-    - name: run train_classification_numpy_nn
-      run: python python_nn/train_classification_numpy_nn.py
-    - name: run train_regression
-      run: python python_nn/train_regression.py
+    - name: run train.py
+      run: python python_nn/train.py
     - name: sudo apt-get update && apt-get install -yq qt5-default
       run: sudo apt-get update && sudo apt-get install -yq qt5-default
     - name: mkdir -p cpp_nn/build
