@@ -46,7 +46,7 @@ class Momentum(Optimizer, ABC):
 
 
 class RMSProp(Optimizer, ABC):
-    def __init__(self, params, lr, beta=0.99, eps=1e-8):
+    def __init__(self, params, lr=0.01, beta=0.99, eps=1e-8):
         super(RMSProp, self).__init__(params, lr)
         self.beta = beta
         self.eps = eps
@@ -71,7 +71,7 @@ class RMSProp(Optimizer, ABC):
 
 
 class AdaGrad(Optimizer, ABC):
-    def __init__(self, params, lr, eps=1e-8):
+    def __init__(self, params, lr=0.01, eps=1e-8):
         super(AdaGrad, self).__init__(params, lr)
         self.eps = eps
         for layer in list(self.params.values()):
@@ -116,8 +116,8 @@ class Adam(Optimizer, ABC):
 
             param["mb"] = mat_add(rescale(param["db"], 1 - self.beta1), rescale(param["mb"], self.beta1))
             param["vb"] = mat_add(rescale(element_wise_mul(param["db"], param["db"]), 1 - self.beta2), rescale(param["vb"], self.beta2))
-            mb_hat = rescale(param["mb"], 1 - self.beta1 ** self.k)
-            vb_hat = rescale(param["vb"], 1 - self.beta2 ** self.k)
+            mb_hat = rescale(param["mb"], 1 / (1 - self.beta1 ** self.k))
+            vb_hat = rescale(param["vb"], 1 / (1 - self.beta2 ** self.k))
             grad_step_b = element_wise_mul(mb_hat, element_wise_rev(add_scalar(mat_sqrt(vb_hat), self.eps)))
             param["b"] = mat_add(param["b"], rescale(grad_step_b, -self.lr))
         self.k += 1

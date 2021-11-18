@@ -1,4 +1,5 @@
 import math
+from copy import deepcopy
 
 
 def mat_mul(a, b):
@@ -82,6 +83,51 @@ def rescale(a, scale):
         for h in range(j):
             temp[w][h] = a[w][h] * scale
     return temp
+
+
+def batch_sum(a):
+    i, j = len(a), len(a[0])
+    temp = [[0 for _ in range(j)]]
+    for w in range(i):
+        for h in range(j):
+            temp[0][h] += a[w][h]
+    return temp
+
+
+def batch_mean(a):
+    i, j = len(a), len(a[0])
+    temp = [[0 for _ in range(j)]]
+    for w in range(i):
+        for h in range(j):
+            temp[0][h] += (a[w][h] / i)
+    return temp
+
+
+def batch_var(a, mu):
+    i, j = len(a), len(a[0])
+    temp = [[0 for _ in range(j)]]
+    for w in range(i):
+        for h in range(j):
+            temp[0][h] += ((a[w][h] - mu[0][h]) ** 2) / i
+    return temp
+
+
+def equal_batch_size(a, b):
+    w0, w1 = len(a), len(b)
+    if w0 < w1:
+        w = w1
+        temp = deepcopy(a)
+        x = a
+    else:
+        w = w0
+        temp = deepcopy(b)
+        x = b
+    while len(temp) < w:
+        temp.append(x[0])
+    if w0 < w1:
+        return temp, b
+    else:
+        return a, temp
 
 
 if __name__ == "__main__":

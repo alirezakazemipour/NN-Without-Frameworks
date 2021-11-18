@@ -19,7 +19,7 @@ def train_regression(nn):
                                           regularizer_type="l2",
                                           lam=1e-3
                                           )
-            # self.bn = nn.layers.BatchNorm1d(100)
+            self.bn = nn.layers.BatchNorm1d(100)
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
                                           weight_initializer=nn.inits.XavierUniform(),
@@ -30,7 +30,7 @@ def train_regression(nn):
 
         def forward(self, x, eval=False):
             x = self.hidden(x)
-            # x = self.bn(x, eval)
+            x = self.bn(x, eval)
             return self.output(x)
 
     np.random.seed(1)
@@ -44,6 +44,7 @@ def train_regression(nn):
     mse = nn.losses.MSELoss()
     opt = nn.optims.Adam(my_net.parameters)
     loss_history = []
+    smoothed_loss = 0
     for step in range(epoch):
         batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
         for i in range(batch_size):
@@ -52,11 +53,15 @@ def train_regression(nn):
             target[i] = t[idx]
         y = my_net(batch)
         loss = mse(y, target)
-        loss_history.append(loss.value)
         my_net.backward(loss)
         opt.apply()
+        if step == 0:
+            smoothed_loss = loss.value
+        else:
+            smoothed_loss = 0.9 * smoothed_loss + 0.1 * loss.value
+        loss_history.append(smoothed_loss)
         if step % 100 == 0:
-            print("Step: %i | loss: %.5f" % (step, loss.value))
+            print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
     plt.scatter(x, t, s=20)
     y = my_net.forward(x, eval=True)
@@ -165,10 +170,9 @@ def train_classification(nn):
 
 if __name__ == "__main__":
     import numpy_nn as nn
-
     train_regression(nn)
     train_classification(nn)
-    import pure_nn as nn
 
+    import pure_nn as nn
     train_regression(nn)
     train_classification(nn)

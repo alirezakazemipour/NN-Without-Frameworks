@@ -59,7 +59,7 @@ class RMSProp(Optimizer, ABC):
 
 
 class AdaGrad(Optimizer, ABC):
-    def __init__(self, params, lr, eps=1e-8):
+    def __init__(self, params, lr=0.01, eps=1e-8):
         super(AdaGrad, self).__init__(params, lr)
         self.eps = eps
         for layer in list(self.params.values()):
