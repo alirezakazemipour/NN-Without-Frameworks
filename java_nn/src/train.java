@@ -65,7 +65,7 @@ public class train {
         for (int epoch = 0; epoch < num_epoch; epoch++){
             float[][] batch = new float[batch_size][0], target = new float[batch_size][1];
             for (int i = 0; i <batch_size; i++){
-                int idx = random.nextInt(0, x.length);
+                int idx = random.nextInt(x.length);
                 batch[i] = x[idx];
                 target[i] = t[idx];
             }
@@ -107,7 +107,7 @@ public class train {
         for (int j = 0; j < num_classes; j++) {
             float[] theta = new float[num_samples];
             for (int i = 0; i < num_samples; i++) {
-                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian(0, 0.2));
+                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian() * 0.2);
             }
             int k = 0;
             for (int idx = j * num_samples; idx < (j + 1) * num_samples; idx++) {
