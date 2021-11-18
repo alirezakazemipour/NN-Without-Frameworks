@@ -1,4 +1,5 @@
-import python_nn.pure_nn as nn
+from .layers import Layer
+from .losses import Loss
 
 
 class Module:
@@ -17,14 +18,14 @@ class Module:
         return self._parameters
 
     def __setattr__(self, key, value):
-        if isinstance(value, nn.layers.Layer):
+        if isinstance(value, Layer):
             layer = value
             self._parameters[key] = layer.vars
             self._layers.append(value)
         object.__setattr__(self, key, value)
 
     def backward(self, loss):
-        assert isinstance(loss, nn.losses.Loss)
+        assert isinstance(loss, Loss)
         delta = loss.delta
         for name, layer in zip(list(self._parameters.keys())[::-1], self._layers[::-1]):
             delta = layer.backward(delta)

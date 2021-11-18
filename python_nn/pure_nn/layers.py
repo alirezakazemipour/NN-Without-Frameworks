@@ -1,7 +1,7 @@
-from abc import ABC
-import python_nn.numpy_nn as nn
 from .utils import *
 from copy import deepcopy
+from .activations import *
+from .initializers import *
 
 
 def supported_layers():
@@ -44,9 +44,9 @@ class ParamLayer(Layer, ABC):
 class Dense(ParamLayer, ABC):
     def __init__(self, in_features: int,
                  out_features: int,
-                 activation: nn.acts = nn.acts.Linear(),
-                 weight_initializer: nn.inits = nn.inits.RandomUniform(),
-                 bias_initializer: nn.inits = nn.inits.Constant(),
+                 activation: Activation = Linear(),
+                 weight_initializer: Initializer = RandomUniform(),
+                 bias_initializer: Initializer = Constant(),
                  regularizer_type: str = None,
                  lam: float = 0.
                  ):

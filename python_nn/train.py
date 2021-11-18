@@ -19,7 +19,7 @@ def train_regression(nn):
                                           regularizer_type="l2",
                                           lam=1e-3
                                           )
-            self.bn = nn.layers.BatchNorm1d(100)
+            # self.bn = nn.layers.BatchNorm1d(100)
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
                                           weight_initializer=nn.inits.XavierUniform(),
@@ -30,7 +30,7 @@ def train_regression(nn):
 
         def forward(self, x, eval=False):
             x = self.hidden(x)
-            x = self.bn(x, eval)
+            # x = self.bn(x, eval)
             return self.output(x)
 
     np.random.seed(1)
@@ -127,7 +127,7 @@ def train_classification(nn):
             idx = random.randint(0, len(x) - 1)
             batch[i] = x[idx]
             target[i] = t[idx]
-        y = my_net(batch, eval=False)
+        y = my_net(batch)
         loss = ce_loss(y, target)
         if nn.__name__ == "pure_nn":
             tot_loss = loss.value + \
@@ -146,7 +146,7 @@ def train_classification(nn):
         loss_history.append(smoothed_loss)
         my_net.backward(loss)
         opt.apply()
-        if step % 10 == 0:
+        if step % 100 == 0:
             print("Step: %i | loss: %.5f" % (step, tot_loss))
 
     y = my_net.forward(x)
