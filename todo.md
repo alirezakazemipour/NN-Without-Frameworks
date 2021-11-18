@@ -11,10 +11,10 @@
 - [ ] Dropout
 - [ ] DQN
 - [x] Classification
-- [ ] Docker Support
+- [x] Docker Support
 - [x] Acknowledgements
 - [x] Invite to contribute
 - [x] Add maths references
 - [x]  Make the Readme more expressive
 - [ ]  Add Checkpoint saving & restoring
-
+- [ ] Add strassen matrix multiplication
