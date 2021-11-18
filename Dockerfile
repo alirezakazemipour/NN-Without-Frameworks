@@ -11,8 +11,7 @@ RUN apt-get update && \
 COPY . /NN_Without_Frameworks
 WORKDIR /NN_Without_Frameworks
 RUN pip3 install numpy matplotlib
-RUN python3.8 python_nn/train_regression.py
-RUN python3.8 python_nn/train_classification_numpy_nn.py
+RUN python3.8 python_nn/train.py
 
 RUN mkdir -p cpp_nn/build
 WORKDIR cpp_nn/build
@@ -21,5 +20,5 @@ RUN make
 RUN ./cpp_nn
 
 WORKDIR /NN_Without_Frameworks/java_nn/src/ 
-RUN javac train_regression.java
-RUN java train_regression
+RUN javac train.java
+RUN java train
