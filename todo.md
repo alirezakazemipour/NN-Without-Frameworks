@@ -1,5 +1,5 @@
 ## TODOs
-- [ ]  CI support by CircleCI
+- [x]  CI support by GitHub Actions
 - [ ] Sphinx Documentation
 - [ ] PyPI page
 - [x] Java language support for Regression

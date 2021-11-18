@@ -32,9 +32,9 @@ jobs:
       run: ./cpp_nn
     - name: sudo apt-get update && apt-get install -yq openjdk-17-jdk
       run: sudo apt-get update && sudo apt-get install -yq openjdk-17-jdk
-    - name: javac train_regression.java
+    - name: javac train.java
       working-directory: java_nn/src
-      run: javac train_regression.java
-    - name: java train_regression
+      run: javac train.java
+    - name: java train
       working-directory: java_nn/src
-      run: java train_regression
+      run: java train
