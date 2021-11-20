@@ -1,9 +1,9 @@
-import Layers.Dense;
 import java.util.*;
 import Losses.Loss;
+import Layers.*;
 
 public abstract class Module {
-    public ArrayList<Dense> layers = new ArrayList<>();
+    public ArrayList<Layer> layers = new ArrayList<>();
 
     public void backward(Loss loss){
         float[][] delta = loss.delta;
@@ -13,5 +13,5 @@ public abstract class Module {
         }
 
     }
-    abstract float[][] forward(float[][] x);
+    abstract float[][] forward(float[][] x, boolean eval);
 }

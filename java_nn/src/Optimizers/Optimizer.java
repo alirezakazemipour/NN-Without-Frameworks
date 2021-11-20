@@ -1,13 +1,13 @@
 package Optimizers;
-import Layers.Dense;
+import Layers.*;
 
 import java.util.ArrayList;
 
 public abstract class Optimizer {
     float lr;
-    public ArrayList<Dense> parameters;
+    public ArrayList<Layer> parameters;
 
-    public Optimizer(float lr, ArrayList<Dense> params){
+    public Optimizer(float lr, ArrayList<Layer> params){
         this.lr = lr;
         this.parameters = params;
     }

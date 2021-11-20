@@ -1,9 +1,11 @@
 package Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Utils {
-    public float[][] mat_mul(float[][] A, float[][] B) {
+    public static float[][] mat_mul(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
         if (k != m) {
@@ -21,7 +23,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] element_wise_mul(float[][] A, float[][] B) {
+    public static float[][] element_wise_mul(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
         if (n != k || m != l) {
@@ -36,7 +38,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] mat_add(float[][] A, float[][] B) {
+    public static float[][] mat_add(float[][] A, float[][] B) {
         int n = A.length, m = A[0].length;
         int k = B.length, l = B[0].length;
         if (n != k || m != l) {
@@ -51,7 +53,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] rescale(float[][] A, float scale) {
+    public static float[][] rescale(float[][] A, float scale) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[w][h];
         for (int i = 0; i < w; i++) {
@@ -63,7 +65,7 @@ public class Utils {
     }
 
 
-    public float[][] transpose(float[][] A) {
+    public static float[][] transpose(float[][] A) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[h][w];
         for (int i = 0; i < w; i++) {
@@ -74,7 +76,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] element_wise_rev(float[][] A) {
+    public static float[][] element_wise_rev(float[][] A) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[w][h];
         for (int i = 0; i < w; i++) {
@@ -85,7 +87,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] add_scalar(float[][] A, float scalar) {
+    public static float[][] add_scalar(float[][] A, float scalar) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[w][h];
         for (int i = 0; i < w; i++) {
@@ -96,7 +98,7 @@ public class Utils {
         return temp;
     }
 
-    public float[][] mat_sqrt(float[][] A) {
+    public static float[][] mat_sqrt(float[][] A) {
         int w = A.length, h = A[0].length;
         float[][] temp = new float[w][h];
         for (int i = 0; i < w; i++) {
@@ -107,12 +109,69 @@ public class Utils {
         return temp;
     }
 
+    public static float[][] batch_mean(float[][] A) {
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[1][h];
+        for (float[] a : A) {
+            for (int j = 0; j < h; j++) {
+                temp[0][j] += (a[j] / w);
+            }
+        }
+        return temp;
+    }
+
+    public static float[][] batch_sum(float[][] A) {
+        int h = A[0].length;
+        float[][] temp = new float[1][h];
+        for (float[] a : A) {
+            for (int j = 0; j < h; j++) {
+                temp[0][j] += a[j];
+            }
+        }
+        return temp;
+    }
+
+    public static float[][] batch_var(float[][] A, float[][] mu) {
+        int w = A.length, h = A[0].length;
+        float[][] temp = new float[1][h];
+        for (float[] a : A) {
+            for (int j = 0; j < h; j++) {
+                temp[0][j] += (Math.pow(a[j] - mu[0][j], 2) / w);
+            }
+        }
+        return temp;
+    }
+
+    public static ArrayList<float[][]> equal_batch_size(float[][] A, float[][] B) {
+        int w0 = A.length, w1 = B.length;
+        int w;
+        float[][] X, temp;
+        if (w0 < w1){
+            w = w1;
+            temp = new float[w1][A[0].length];
+            X = A;
+        }
+        else {
+            w = w0;
+            temp = new float[w0][B[0].length];
+            X = B;
+        }
+        for(int i = 0; i < w; i++){
+            temp[i] = X[0];
+        }
+        if (w0 < w1) {
+            return new ArrayList<>(List.of(temp, B));
+        }
+        else{
+            return new ArrayList<>(List.of(A, temp));
+        }
+    }
+
     public static void main(String[] args) {
         float[][] a = new float[][]{{1, 2}, {3, 4}};
         float[][] b = new float[][]{{5, 6}, {7, 8}};
-        Utils utils = new Utils();
-        System.out.println(Arrays.deepToString(utils.mat_mul(a, b)));
-        utils.mat_add(a, b);
+        System.out.println(Arrays.deepToString(Utils.mat_mul(a, b)));
+        Utils.mat_add(a, b);
         System.out.println(Arrays.deepToString(a));
 
     }

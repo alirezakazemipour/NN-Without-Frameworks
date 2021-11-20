@@ -1,15 +1,9 @@
 package Losses;
 
-import Utils.Utils;
 
 public class CrossEntropyLoss extends LossFunc {
-    Utils utils = new Utils();
 
     public CrossEntropyLoss() {
-    }
-
-    public CrossEntropyLoss(float[][] pred, float[][] target) {
-        super(pred, target);
     }
 
     @Override

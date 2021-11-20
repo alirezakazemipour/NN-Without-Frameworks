@@ -162,7 +162,7 @@ class BatchNorm1d(ParamLayer, ABC):
         a1 = rescale(dx_hat, m)
         a2 = batch_sum(dx_hat)
         a3 = element_wise_mul(*equal_batch_size(self.x_hat, batch_sum(element_wise_mul(dx_hat, self.x_hat))))
-        num = mat_add(a1, rescale(mat_add(*equal_batch_size(a2, rescale(a3, -1))), -1))
+        num = mat_add(a1, mat_add(*equal_batch_size(rescale(a2, -1), rescale(a3, -1))))
         den = rescale(mat_sqrt(add_scalar(element_wise_mul(self.std, self.std), self.eps)), m)
 
         delta = element_wise_mul(*equal_batch_size(num, element_wise_rev(den)))

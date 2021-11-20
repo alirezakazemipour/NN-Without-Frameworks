@@ -4,17 +4,14 @@ import Initializers.*;
 import Utils.*;
 import Activations.*;
 
+public class Dense extends Layer {
 
-public class Dense implements Layer {
-    public float[][] W, dW;
-    public float[][] b, db;
     int in_features;
     int out_features;
     String weight_initializer = "xavier_uniform";
     String bias_initializer = "zeros";
     String regularizer_type = null;
     public float lam = 0.0F;
-    Utils utils = new Utils();
     Linear linear = new Linear();
     ReLU relu = new ReLU();
     String act_name = "linear";
@@ -51,22 +48,17 @@ public class Dense implements Layer {
             this.b = this.zeros.initialize(1, this.out_features);
         }
 
-        Constant zero_init = new Constant(0F);
-        zero_init.initialize(this.in_features, this.out_features);
-        zero_init.initialize(1, this.out_features);
-
-
     }
 
     @Override
-    public float[][] forward(float[][] x) {
+    public float[][] forward(float[][] x, boolean eval) {
         this.input = x;
-        float[][] z = this.utils.mat_mul(x, this.W);
+        float[][] z = Utils.mat_mul(x, this.W);
         float[][] b = new float[z.length][this.b[0].length];
         for (int i = 0; i < z.length; i++) {
             b[i] = this.b[0];
         }
-        z = this.utils.mat_add(z, b);
+        z = Utils.mat_add(z, b);
         this.z = z;
 
         float[][] a = (this.act_name.equals("relu")) ? this.relu.forward(z) : this.linear.forward(z);
@@ -77,20 +69,20 @@ public class Dense implements Layer {
     public float[][] backward(float[][] delta) {
         float[][] dz;
         if (this.act_name.equals("relu")) {
-            dz = this.utils.element_wise_mul(delta, this.relu.derivative(this.z));
+            dz = Utils.element_wise_mul(delta, this.relu.derivative(this.z));
         } else {
-            dz = this.utils.element_wise_mul(delta, this.linear.derivative(this.z));
+            dz = Utils.element_wise_mul(delta, this.linear.derivative(this.z));
         }
 
-        float[][] input_t = this.utils.transpose(this.input);
-        float[][] dw = this.utils.mat_mul(input_t, dz);
-        this.dW = this.utils.rescale(dw, 1F / dz.length);
+        float[][] input_t = Utils.transpose(this.input);
+        float[][] dw = Utils.mat_mul(input_t, dz);
+        this.dW = Utils.rescale(dw, 1F / dz.length);
 
         if (this.regularizer_type.equals("l2")){
-            this.dW = this.utils.mat_add(this.dW, this.utils.rescale(this.W, this.lam));
+            this.dW = Utils.mat_add(this.dW, Utils.rescale(this.W, this.lam));
         }
         else if (this.regularizer_type.equals("l1")){
-            this.dW = this.utils.add_scalar(this.dW, this.lam);
+            this.dW = Utils.add_scalar(this.dW, this.lam);
         }
 
         float[][] ones_t = new float[1][dz.length];
@@ -100,23 +92,22 @@ public class Dense implements Layer {
             }
         }
 
-        float[][] db = utils.mat_mul(ones_t, dz);
-        this.db = this.utils.rescale(db, 1F / dz.length);
+        float[][] db = Utils.mat_mul(ones_t, dz);
+        this.db = Utils.rescale(db, 1F / dz.length);
 
         if (this.regularizer_type.equals("l2")){
-            this.db = this.utils.mat_add(this.db, this.utils.rescale(this.b, this.lam));
+            this.db = Utils.mat_add(this.db, Utils.rescale(this.b, this.lam));
         }
         else if (this.regularizer_type.equals("l1")){
-            this.db = this.utils.add_scalar(this.db, this.lam);
+            this.db = Utils.add_scalar(this.db, this.lam);
         }
 
-        float[][] w_t = this.utils.transpose(this.W);
-        delta = this.utils.mat_mul(dz, w_t);
+        float[][] w_t = Utils.transpose(this.W);
+        delta = Utils.mat_mul(dz, w_t);
         return delta;
     }
 
     public static void main(String[] args) {
-        Utils utils = new Utils();
         float[][] a = new float[][]{{1, 2}, {3, 4}};
         float[][] b = new float[][]{{1, 2}, {3, 4}};
 

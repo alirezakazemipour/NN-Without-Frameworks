@@ -1,8 +1,11 @@
 package Layers;
 
-interface Layer {
-    float[][] forward(float[][] x);
-    float[][] backward(float[][] x);
+public abstract class Layer {
+    public float[][] W, dW;
+    public float[][] b, db;
+    public float lam;
+    public abstract float[][] forward(float[][] x, boolean eval);
+    public abstract float[][] backward(float[][] x);
 }
 
 

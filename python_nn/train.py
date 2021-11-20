@@ -3,6 +3,7 @@ import random
 import numpy as np
 
 
+# region train_regression
 def train_regression(nn):
     print(f"-----{nn.__name__}: Regression-----")
 
@@ -71,6 +72,9 @@ def train_regression(nn):
     plt.show()
 
 
+# endregion
+
+
 def train_classification(nn):
     print(f"-----{nn.__name__}: Classification-----")
 
@@ -79,26 +83,28 @@ def train_classification(nn):
             super().__init__()
             self.input_dim = input_dim
             self.out_dim = out_dim
-            self.hidden1 = nn.layers.Dense(in_features=self.input_dim,
-                                           out_features=100,
-                                           activation=nn.acts.ReLU(),
-                                           weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-                                           bias_initializer=nn.inits.Constant(0.),
-                                           # regularizer_type="l2",
-                                           # lam=1e-3
-                                           )
-
+            self.hidden = nn.layers.Dense(in_features=self.input_dim,
+                                          out_features=100,
+                                          activation=nn.acts.ReLU(),
+                                          weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+                                          bias_initializer=nn.inits.Constant(0.),
+                                          regularizer_type="l2",
+                                          lam=1e-3
+                                          )
+            self.bn = nn.layers.BatchNorm1d(100)
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
                                           weight_initializer=nn.inits.XavierUniform(),
                                           bias_initializer=nn.inits.Constant(0.),
-                                          # regularizer_type="l2",
-                                          # lam=1e-3
+                                          regularizer_type="l2",
+                                          lam=1e-3
                                           )
 
         def forward(self, x, eval=False):
-            x = self.hidden1(x)
-            return self.output(x)
+            x = self.hidden(x)
+            x = self.bn(x, eval)
+            x = self.output(x)
+            return x
 
     np.random.seed(1)
     random.seed(1)
@@ -136,25 +142,25 @@ def train_classification(nn):
         loss = ce_loss(y, target)
         if nn.__name__ == "pure_nn":
             tot_loss = loss.value + \
-                       0.5 * my_net.hidden1.lam * np.sum(
-                nn.utils.element_wise_mul(my_net.hidden1.vars["W"], my_net.hidden1.vars["W"])) + \
+                       0.5 * my_net.hidden.lam * np.sum(
+                nn.utils.element_wise_mul(my_net.hidden.vars["W"], my_net.hidden.vars["W"])) + \
                        0.5 * my_net.output.lam * np.sum(
                 nn.utils.element_wise_mul(my_net.output.vars["W"], my_net.output.vars["W"]))
         else:
             tot_loss = loss.value + \
-                       0.5 * my_net.hidden1.lam * np.sum(my_net.hidden1.vars["W"] ** 2) + \
+                       0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
                        0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
         if step == 0:
             smoothed_loss = tot_loss
         else:
-            smoothed_loss = 0.9 * smoothed_loss + 0.1 * tot_loss
+            smoothed_loss = 0.99 * smoothed_loss + 0.01 * tot_loss
         loss_history.append(smoothed_loss)
         my_net.backward(loss)
         opt.apply()
         if step % 100 == 0:
             print("Step: %i | loss: %.5f" % (step, tot_loss))
 
-    y = my_net.forward(x)
+    y = my_net.forward(x, True)
     predicted_class = np.argmax(y, axis=1)
     print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t).squeeze(-1))))
     plt.plot(np.arange(len(loss_history)), loss_history)
@@ -169,10 +175,13 @@ def train_classification(nn):
 
 
 if __name__ == "__main__":
-    import numpy_nn as nn
-    train_regression(nn)
-    train_classification(nn)
+    # import numpy_nn as nn
+    #
+    # train_regression(nn)
+    # train_classification(nn)
 
     import pure_nn as nn
-    train_regression(nn)
+
+    #
+    # # train_regression(nn)
     train_classification(nn)
