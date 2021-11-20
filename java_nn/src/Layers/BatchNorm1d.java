@@ -29,7 +29,7 @@ public class BatchNorm1d extends Layer{
             this.mu = Utils.batch_mean(x);
             this.std = Utils.mat_sqrt(Utils.batch_var(x, this.mu));
             this.mu_hat = Utils.mat_add(Utils.rescale(this.mu_hat, 1 - this.beta), Utils.rescale(this.mu, this.beta));
-            this.std_hat = Utils.mat_add(Utils.rescale(this.std_hat, 1 - this.beta), Utils.rescale(this.std_hat, this.beta));
+            this.std_hat = Utils.mat_add(Utils.rescale(this.std_hat, 1 - this.beta), Utils.rescale(this.std, this.beta));
         }
         else {
             this.mu = this.mu_hat;
@@ -60,7 +60,7 @@ public class BatchNorm1d extends Layer{
     public float[][] backward(float[][] delta) {
         float[][] dz = delta;
         float[][] dx_hat = Utils.element_wise_mul(dz, this.gamma);
-        float m = dz.length;
+        int m = dz.length;
         this.dW = Utils.rescale(Utils.batch_sum(Utils.element_wise_mul(this.x_hat, dz)), 1F / m);
         this.db = Utils.rescale(Utils.batch_sum(dz), 1F / m);
 

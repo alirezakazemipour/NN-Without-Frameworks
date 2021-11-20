@@ -14,16 +14,16 @@ class MyNet extends Module {
         this.in_features = in_features;
         this.out_features = out_features;
         this.hidden = new Dense(this.in_features,
-                100,
+                256,
                 "relu",
-                "xavier_uniform",
+                "he_normal",
                 "zeros",
                 "l2",
                 0.001F);
         this.layers.add(this.hidden);
-        this.bn = new BatchNorm1d(100);
+        this.bn = new BatchNorm1d(256);
         this.layers.add(this.bn);
-        this.output = new Dense(100,
+        this.output = new Dense(256,
                 this.out_features,
                 "linear",
                 "xavier_uniform",
@@ -43,7 +43,7 @@ class MyNet extends Module {
 
 public class train {
     public static void main(String[] args) {
-//        train_regression();
+        train_regression();
         train_classification();
     }
 
@@ -52,7 +52,7 @@ public class train {
         Random random = new Random();
         random.setSeed(1);
         int num_epoch = 1000;
-        int batch_size = 200;
+        int batch_size = 64;
 
         float[][] x = new float[200][1], t = new float[200][1];
         for (int i = -100; i < 100; i++) {
@@ -64,7 +64,7 @@ public class train {
         Adam opt = new Adam(my_net.layers, 0.001F, 0.9F, 0.999F);
         float smoothed_loss = 0;
         boolean smoothed_flag = false;
-        for (int epoch = 0; epoch < num_epoch; epoch++) {
+        for (int epoch = 1; epoch < num_epoch + 1; epoch++) {
             float[][] batch = new float[batch_size][0], target = new float[batch_size][1];
             for (int i = 0; i < batch_size; i++) {
                 int idx = random.nextInt(x.length);
@@ -124,8 +124,8 @@ public class train {
 
         MyNet my_net = new MyNet(num_features, num_classes);
         CrossEntropyLoss celoss = new CrossEntropyLoss();
-        SGD opt = new SGD(1.0F, my_net.layers);
-        float smoothed_loss = 0, total_loss = 0;
+        SGD opt = new SGD(1F, my_net.layers);
+        float smoothed_loss = 0, total_loss;
         boolean smoothed_flag = false;
         float[][] y;
         for (int epoch = 0; epoch < num_epoch; epoch++) {
