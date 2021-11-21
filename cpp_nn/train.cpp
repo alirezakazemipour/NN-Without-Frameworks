@@ -12,6 +12,7 @@ class MyNet : public Module{
 public:
     int in_features = 0, out_features = 0;
     Dense *hidden, *output;
+    BatchNorm1d *bn;
 
     MyNet(int in_features, int out_features){
         this->in_features = in_features;
@@ -26,6 +27,9 @@ public:
                 0.001};
         this->parameters.push_back(this->hidden);
 
+        this->bn = new BatchNorm1d{100};
+        this->parameters.push_back(this->bn);
+
         this->output = new Dense{100,
                 this->out_features,
                 "linear",
@@ -35,9 +39,10 @@ public:
                 0.001};
         this->parameters.push_back(this->output);
     }
-    float_batch forward(const float_batch &input){
-        float_batch x = this->hidden->forward(input);
-        x = this->output->forward(x);
+    float_batch forward(const float_batch &input, bool eval){
+        float_batch x = this->hidden->forward(input, eval);
+        x = this->bn->forward(x, eval);
+        x = this->output->forward(x, eval);
         return x;
 
     }
@@ -48,7 +53,7 @@ void train_classification();
 
 int main()
 {
-//    train_regression();
+    train_regression();
     train_classification();
     return 0;
 }
@@ -58,7 +63,7 @@ void train_classification(){
     int num_samples = 100;
     int num_features = 2;
     int num_classes = 3;
-    int num_epoch = 500;
+    int num_epoch = 1000;
     int batch_size = 64;
 
     std::random_device rd{};
@@ -89,7 +94,7 @@ void train_classification(){
 
     MyNet my_net = MyNet{num_features, num_classes};
     CrossEntropyLoss celoss;
-    SGD opt(1, my_net.parameters);
+    Adam opt(0.1, 0.9, 0.999, my_net.parameters);
     float smoothed_loss = 0, total_loss = 0;
     bool smoothed_flag = false;
     float_batch y;
@@ -103,7 +108,7 @@ void train_classification(){
             target[i][0] = t[idx][0];
         }
 
-        y= my_net.forward(batch);
+        y= my_net.forward(batch, false);
         Loss loss = celoss.apply(y, target);
         my_net.backward(loss);
         opt.apply();
@@ -129,10 +134,9 @@ void train_classification(){
         }
         if (step % 100 ==0)
             cout<<"Step: " << step <<" | loss: " << smoothed_loss<<endl;
-//        cout << my_net.output->b[0][0] <<endl;
 
     }
-    y = my_net.forward(x);
+    y = my_net.forward(x, true);
     int predicted_class[num_samples * num_classes];
     for (int i = 0; i < num_samples * num_classes; i++) {
         int selected_class = -1;
@@ -147,8 +151,6 @@ void train_classification(){
     }
     int true_positives = 0;
     for (int i = 0; i < num_samples * num_classes; i++) {
-//        cout << predicted_class[i] <<"\t"<< t[i][0] <<endl;
-
         if (predicted_class[i] == (int)t[i][0]) {
             true_positives++;
         }
@@ -168,7 +170,6 @@ void train_regression(){
 
 
     for(int i = -100; i < 100; i++){
-        //        cout<<i<<endl;
         x[i + 100][0] = 0.01 * i;
         t[i + 100][0] = pow(x[i + 100][0], 2) + d(gen);
 
@@ -183,7 +184,7 @@ void train_regression(){
     float_batch y;
 
     for(int epoch = 0; epoch < 1000; epoch++){
-        y= my_net.forward(x);
+        y= my_net.forward(x, false);
         Loss loss = mse.apply(y, t);
         my_net.backward(loss);
         opt.apply();

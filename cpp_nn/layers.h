@@ -12,9 +12,9 @@ class Layer{
 
 public:
     float_batch W, dW, b, db;
-    float lambda;
+    float lambda = 0;
 
-    virtual float_batch forward(const float_batch &x) = 0;
+    virtual float_batch forward(const float_batch &x, bool eval) = 0;
     virtual float_batch backward(float_batch &x) = 0;
 };
 
@@ -27,13 +27,11 @@ public:
     string bias_initializer;
     string activation = "linear";
     string regularization_type;
-    float lambda;
     float_batch input, z;
 
     RandomUniform random_uniform;
     Constant zeros{0.0};
     XavierUniform xavier_uniform;
-    Utils utils;
     Linear linear;
     ReLU relu;
 
@@ -74,8 +72,40 @@ public:
 
 
     // Layer interface
-    float_batch forward(const float_batch &x);
+    float_batch forward(const float_batch &x, bool eval);
     float_batch backward(float_batch &delta);
 };
 
+
+class BatchNorm1d : public Layer{
+
+public:
+    int in_features;
+    string weight_initializer;
+    string bias_initializer;
+    float_batch mu_hat, std_hat;
+    float_batch mu, std;
+    float_batch x_hat, gamma;
+    float beta = 1, eps = 0.00001;
+
+    Constant zeros{0.0};
+    Constant ones{1.0};
+
+
+    BatchNorm1d(int in_features){
+        this->in_features = in_features;
+
+        this->W = this->ones.initialize(1, this->in_features);
+        this->b = this->zeros.initialize(1, this->in_features);
+        this->std_hat = this->ones.initialize(1, this->in_features);
+        this->mu_hat = this->zeros.initialize(1, this->in_features);
+
+    };
+
+
+
+    // Layer interface
+    float_batch forward(const float_batch &x, bool eval);
+    float_batch backward(float_batch &delta);
+};
 #endif // LAYERS_H

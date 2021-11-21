@@ -12,7 +12,7 @@ class Module
 {
 public:
     vector<Layer*> parameters;
-    virtual  float_batch forward(const float_batch &input)=0;
+    virtual  float_batch forward(const float_batch &input, bool eval)=0;
     void backward(const Loss &loss);
 };
 
