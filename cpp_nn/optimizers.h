@@ -14,9 +14,9 @@ class Optimizer
 {
 public:
     float lr;
-    vector<Dense*> parameters;
+    vector<Layer*> parameters;
 
-    Optimizer(float lr, vector<Dense*> &params);
+    Optimizer(float lr, vector<Layer*> &params);
     virtual void apply()=0;
 };
 
@@ -24,7 +24,7 @@ class SGD : public Optimizer
 {
 public:
     Utils utils;
-    SGD(float lr, vector<Dense*> &params) : Optimizer{lr, params}{};
+    SGD(float lr, vector<Layer*> &params) : Optimizer{lr, params}{};
     void apply();
 
 };
@@ -35,7 +35,7 @@ public:
     Utils utils;
     float mu;
     vector<float_batch> gW, gb;
-    Momentum(float lr, float mu, vector<Dense*> &params);
+    Momentum(float lr, float mu, vector<Layer*> &params);
     void apply();
 
 };
@@ -47,7 +47,7 @@ public:
     float beta=0.99;
 
     vector<float_batch> sW, sb;
-    RMSProp(float lr, float beta, vector<Dense*> &params);
+    RMSProp(float lr, float beta, vector<Layer*> &params);
     void apply();
 
 };
@@ -57,7 +57,7 @@ class AdaGrad : public Optimizer
 public:
     Utils utils;
     vector<float_batch> sW, sb;
-    AdaGrad(float lr, vector<Dense*> &params);
+    AdaGrad(float lr, vector<Layer*> &params);
     void apply();
 
 };
@@ -69,7 +69,7 @@ public:
     float beta1=0.9, beta2=0.999;
     int k = 1;
     vector<float_batch> mW, vW, mb, vb;
-    Adam(float lr, float beta1, float beta2, vector<Dense*> &params);
+    Adam(float lr, float beta1, float beta2, vector<Layer*> &params);
     void apply();
 
 };

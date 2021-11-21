@@ -11,7 +11,7 @@ using namespace std;
 class Module
 {
 public:
-    vector<Dense*> parameters;
+    vector<Layer*> parameters;
     virtual  float_batch forward(const float_batch &input)=0;
     void backward(const Loss &loss);
 };

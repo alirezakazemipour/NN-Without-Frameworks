@@ -4,6 +4,7 @@
 #include <utils.h>
 #include <losses.h>
 #include <optimizers.h>
+#include <iomanip>
 
 using namespace std;
 
@@ -47,17 +48,17 @@ void train_classification();
 
 int main()
 {
-    train_regression();
+//    train_regression();
     train_classification();
     return 0;
 }
 
 void train_classification(){
     cout <<"-----Classification-------"<<endl;
-    int num_samples = 500;
+    int num_samples = 100;
     int num_features = 2;
     int num_classes = 3;
-    int num_epoch = 1000;
+    int num_epoch = 500;
     int batch_size = 64;
 
     std::random_device rd{};
@@ -70,7 +71,7 @@ void train_classification(){
 
     float radius[num_samples];
     for (int i = 0; i < num_samples; i++){
-        radius[i] = i / num_samples;
+        radius[i] = float(i) / num_samples;
     }
     for (int j = 0; j < num_classes; j++){
         float theta[num_samples];
@@ -102,9 +103,8 @@ void train_classification(){
             target[i][0] = t[idx][0];
         }
 
-
         y= my_net.forward(batch);
-        Loss loss = celoss.apply(y, t);
+        Loss loss = celoss.apply(y, target);
         my_net.backward(loss);
         opt.apply();
 
@@ -129,10 +129,12 @@ void train_classification(){
         }
         if (step % 100 ==0)
             cout<<"Step: " << step <<" | loss: " << smoothed_loss<<endl;
+//        cout << my_net.output->b[0][0] <<endl;
+
     }
     y = my_net.forward(x);
-    int predicted_class[batch_size];
-    for (int i = 0; i < batch_size; i++) {
+    int predicted_class[num_samples * num_classes];
+    for (int i = 0; i < num_samples * num_classes; i++) {
         int selected_class = -1;
         float max_prob = -std::numeric_limits<float>::max();
         for (int j = 0; j < num_classes; j++) {
@@ -144,12 +146,14 @@ void train_classification(){
         predicted_class[i] = selected_class;
     }
     int true_positives = 0;
-    for (int i = 0; i < batch_size; i++) {
+    for (int i = 0; i < num_samples * num_classes; i++) {
+//        cout << predicted_class[i] <<"\t"<< t[i][0] <<endl;
+
         if (predicted_class[i] == (int)t[i][0]) {
             true_positives++;
         }
     }
-    cout<<"training acc: " << float(true_positives) / float(batch_size) << endl;
+    cout<<"training acc: " << fixed << setprecision(0) << float(true_positives) / float(num_samples * num_classes) * 100 <<"%"<< endl;
 }
 
 void train_regression(){

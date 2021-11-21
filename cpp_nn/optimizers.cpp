@@ -1,6 +1,6 @@
 #include "optimizers.h"
 
-Optimizer::Optimizer(float lr, vector<Dense*> &params)
+Optimizer::Optimizer(float lr, vector<Layer*> &params)
 {
     this->lr = lr;
     this->parameters = params;
@@ -16,7 +16,7 @@ void SGD::apply()
     }
 }
 
-Momentum::Momentum(float lr, float mu, vector<Dense *> &params) : Optimizer{lr, params}{
+Momentum::Momentum(float lr, float mu, vector<Layer*> &params) : Optimizer{lr, params}{
     this->mu = mu;
     for(size_t i = 0; i < this->parameters.size(); i++){
         this->gW.push_back(this->utils.rescale(this->parameters[i]->W, 0.0));
@@ -43,7 +43,7 @@ void Momentum::apply()
 
 }
 
-RMSProp::RMSProp(float lr, float beta, vector<Dense *> &params) : Optimizer(lr, params){
+RMSProp::RMSProp(float lr, float beta, vector<Layer*> &params) : Optimizer(lr, params){
     this->beta = beta;
     for (size_t i = 0; i < this->parameters.size(); i++){
         this->sW.push_back(this->utils.rescale(this->parameters[i]->W, 0.0));
@@ -80,7 +80,7 @@ void RMSProp::apply()
     }
 }
 
-AdaGrad::AdaGrad(float lr, vector<Dense *> &params) : Optimizer(lr, params)
+AdaGrad::AdaGrad(float lr, vector<Layer*> &params) : Optimizer(lr, params)
 {
     for (size_t i = 0; i < this->parameters.size(); i++){
         this->sW.push_back(this->utils.rescale(this->parameters[i]->W, 0.0));
@@ -116,7 +116,7 @@ void AdaGrad::apply()
     }
 }
 
-Adam::Adam(float lr, float beta1, float beta2, vector<Dense *> &params) : Optimizer(lr, params)
+Adam::Adam(float lr, float beta1, float beta2, vector<Layer*> &params) : Optimizer(lr, params)
 {
     this->beta1 = beta1;
     this->beta2 = beta2;

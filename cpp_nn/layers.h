@@ -11,6 +11,9 @@ using namespace std;
 class Layer{
 
 public:
+    float_batch W, dW, b, db;
+    float lambda;
+
     virtual float_batch forward(const float_batch &x) = 0;
     virtual float_batch backward(float_batch &x) = 0;
 };
@@ -19,7 +22,6 @@ public:
 class Dense : public Layer{
 
 public:
-    float_batch W, dW, b, db;
     int in_features, out_features;
     string weight_initializer;
     string bias_initializer;
