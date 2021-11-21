@@ -39,6 +39,8 @@ Regularizer:
 - l1
 - l2
 
+Normalization:
+- BatchNorm1d
 
 
 

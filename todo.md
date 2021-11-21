@@ -5,7 +5,7 @@
 - [x] Java language support for Regression
 - [x] CPP language Support for Regression
 - [x] Xavier and He initializers
-- [ ] Batchnorm
+- [x] Batchnorm1d
 - [x] Regularization
 - [ ] CNN support
 - [ ] Dropout
