@@ -98,7 +98,7 @@ public class train {
         int num_classes = 3;
 
         int num_epoch = 500;
-        int batch_size = 64;
+        int batch_size = 128;
 
 
         float[][] x = new float[num_classes * num_samples][num_features];
@@ -111,7 +111,7 @@ public class train {
         for (int j = 0; j < num_classes; j++) {
             float[] theta = new float[num_samples];
             for (int i = 0; i < num_samples; i++) {
-                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian(0, 0.2));
+                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian() * 0.2);
             }
             int k = 0;
             for (int idx = j * num_samples; idx < (j + 1) * num_samples; idx++) {

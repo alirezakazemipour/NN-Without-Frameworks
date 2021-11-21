@@ -26,7 +26,7 @@ public class HeNormal {
         float[][] temp = new float[fan_in][fan_out];
         for(int i = 0; i < fan_in; i++){
             for(int j=0; j < fan_out; j++){
-                temp[i][j] = (float)(this.rand.nextGaussian(0, std)); // ~N(0, std)
+                temp[i][j] = (float)(this.rand.nextGaussian() * std); // ~N(0, std)
             }
         }
         return temp;
