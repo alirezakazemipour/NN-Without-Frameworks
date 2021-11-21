@@ -7,7 +7,7 @@ Each network/config is implemented in 4 formats while trying to mimic [PyTorch's
 1. In Python using NumPy
 2. In Python without taking advantage of NumPy
 3. In java
-4. in C++
+4. In C++
 
 ## What is currently supported? (equally in all languages and formats)
 Layers:
