@@ -20,7 +20,7 @@ public class BatchNorm1d extends Layer{
         this.W = this.ones.initialize(1, this.in_features);
         this.b = this.zeros.initialize(1, this.in_features);
         this.mu_hat = this.zeros.initialize(1, this.in_features);
-        this.std_hat = this.zeros.initialize(1, this.in_features);
+        this.std_hat = this.ones.initialize(1, this.in_features);
     }
 
     @Override

@@ -118,7 +118,7 @@ class BatchNorm1d(ParamLayer, ABC):
         self.mu = 0
         self.std = 0
         self.mu_hat = [[0 for _ in range(self.in_features)]]
-        self.std_hat = [[0 for _ in range(self.in_features)]]
+        self.std_hat = [[1 for _ in range(self.in_features)]]
         self.gamma = None
 
     def forward(self, x, eval=False):

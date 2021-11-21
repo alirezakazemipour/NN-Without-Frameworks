@@ -14,16 +14,16 @@ class MyNet extends Module {
         this.in_features = in_features;
         this.out_features = out_features;
         this.hidden = new Dense(this.in_features,
-                256,
+                100,
                 "relu",
                 "he_normal",
                 "zeros",
                 "l2",
                 0.001F);
         this.layers.add(this.hidden);
-        this.bn = new BatchNorm1d(256);
+        this.bn = new BatchNorm1d(100);
         this.layers.add(this.bn);
-        this.output = new Dense(256,
+        this.output = new Dense(100,
                 this.out_features,
                 "linear",
                 "xavier_uniform",
@@ -111,7 +111,7 @@ public class train {
         for (int j = 0; j < num_classes; j++) {
             float[] theta = new float[num_samples];
             for (int i = 0; i < num_samples; i++) {
-                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian() * 0.2);
+                theta[i] = (float) (i * 0.04 + j * 4 + random.nextGaussian(0, 0.2));
             }
             int k = 0;
             for (int idx = j * num_samples; idx < (j + 1) * num_samples; idx++) {
