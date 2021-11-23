@@ -175,13 +175,13 @@ def train_classification(nn):
 
 
 if __name__ == "__main__":
-    # import numpy_nn as nn
-    #
-    # train_regression(nn)
-    # train_classification(nn)
+    import numpy_nn as nn
+
+    train_regression(nn)
+    train_classification(nn)
 
     import pure_nn as nn
 
     #
-    # # train_regression(nn)
+    train_regression(nn)
     train_classification(nn)

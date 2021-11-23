@@ -89,11 +89,11 @@ class Dense(ParamLayer, ABC):
 
         if self.regularizer_type == "l2":
             self.vars["dW"] = mat_add(self.vars["dW"], rescale(self.vars["W"], self.lam))
-            self.vars["db"] = mat_add(self.vars["db"], rescale(self.vars["b"], self.lam))
+            # self.vars["db"] = mat_add(self.vars["db"], rescale(self.vars["b"], self.lam))
 
         elif self.regularizer_type == "l1":
             self.vars["dW"] = add_scalar(self.vars["dW"], self.lam)
-            self.vars["db"] = add_scalar(self.vars["db"], self.lam)
+            # self.vars["db"] = add_scalar(self.vars["db"], self.lam)
 
         w_t = transpose(self.vars["W"])
         # delta = dz.dot(self.vars["W"].T)

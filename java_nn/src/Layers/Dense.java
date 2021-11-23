@@ -95,12 +95,12 @@ public class Dense extends Layer {
         float[][] db = Utils.mat_mul(ones_t, dz);
         this.db = Utils.rescale(db, 1F / dz.length);
 
-        if (this.regularizer_type.equals("l2")){
-            this.db = Utils.mat_add(this.db, Utils.rescale(this.b, this.lam));
-        }
-        else if (this.regularizer_type.equals("l1")){
-            this.db = Utils.add_scalar(this.db, this.lam);
-        }
+//        if (this.regularizer_type.equals("l2")){
+//            this.db = Utils.mat_add(this.db, Utils.rescale(this.b, this.lam));
+//        }
+//        else if (this.regularizer_type.equals("l1")){
+//            this.db = Utils.add_scalar(this.db, this.lam);
+//        }
 
         float[][] w_t = Utils.transpose(this.W);
         delta = Utils.mat_mul(dz, w_t);

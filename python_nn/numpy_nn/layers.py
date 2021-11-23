@@ -80,10 +80,10 @@ class Dense(ParamLayer, ABC):
 
         if self.regularizer_type == "l2":
             self.vars["dW"] += self.lam * self.vars["W"]
-            self.vars["db"] += self.lam * self.vars["b"]
+            # self.vars["db"] += self.lam * self.vars["b"]
         elif self.regularizer_type == "l1":
             self.vars["dW"] += self.lam
-            self.vars["db"] += self.lam
+            # self.vars["db"] += self.lam
 
         delta = dz.dot(self.vars["W"].T)
         return delta
