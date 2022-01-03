@@ -42,13 +42,11 @@ class Tanh(Activation, ABC):
 
 
 class Sigmoid(Activation, ABC):
-    # https://stackoverflow.com/a/48541786/12732481
+    # https://stackoverflow.com/a/23194336/12732481
     def forward(self, x):
         """Numerically stable sigmoid function."""
-        if -x > np.log(np.finfo(type(x)).max):
-            return 1.
-        a = np.exp(-x)
-        return 1.0 / (1.0 + a)
+        x = np.clip(x, -500, 500)
+        return 1 / (1 + np.exp(-x))
 
     def derivative(self, x):
         return self.forward(x) * (1 - self.forward(x))
