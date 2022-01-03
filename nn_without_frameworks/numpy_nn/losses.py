@@ -17,6 +17,7 @@ class LossFunc:
     def __init__(self, pred=None, target=None):
         self.pred = pred
         self.target = target
+        self.eps = 1e-6
 
     def apply(self, p, t):
         raise NotImplementedError
@@ -81,7 +82,7 @@ class BinaryCrossEntropy(LossFunc, ABC):
             p = np.asarray(p)
 
         super(BinaryCrossEntropy, self).__init__(p, t)
-        loss = -(t * np.log(p) + (1 - t) * np.log(1 - p))
+        loss = -(t * np.log(p + self.eps) + (1 - t) * np.log(1 - p + self.eps))
         return Loss(np.mean(loss), self.delta)
 
     @property
