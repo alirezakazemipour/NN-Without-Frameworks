@@ -158,7 +158,7 @@ def train_classification(nn):
         my_net.backward(loss)
         opt.apply()
         if step % 100 == 0:
-            print("Step: %i | loss: %.5f" % (step, tot_loss))
+            print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
     y = my_net.forward(x, True)
     predicted_class = np.argmax(y, axis=1)
@@ -177,11 +177,11 @@ def train_classification(nn):
 if __name__ == "__main__":
     import numpy_nn as nn
 
-    train_regression(nn)
+    # train_regression(nn)
     train_classification(nn)
 
     import pure_nn as nn
 
     #
-    train_regression(nn)
+    # train_regression(nn)
     train_classification(nn)

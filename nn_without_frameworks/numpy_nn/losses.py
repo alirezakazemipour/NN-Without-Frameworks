@@ -29,12 +29,12 @@ class LossFunc:
         return self.apply(p, t)
 
 
-class MSELoss(LossFunc, ABC):
+class MSE(LossFunc, ABC):
     def __init__(self):
-        super(MSELoss, self).__init__()
+        super(MSE, self).__init__()
 
     def apply(self, p, t):
-        super(MSELoss, self).__init__(p, t)
+        super(MSE, self).__init__(p, t)
         return Loss(np.mean((p - t) ** 2) / 2, self.delta)
 
     @property
@@ -42,13 +42,13 @@ class MSELoss(LossFunc, ABC):
         return self.pred - self.target
 
 
-class CrossEntropyLoss(LossFunc, ABC):
+class CrossEntropy(LossFunc, ABC):
     #  https://cs231n.github.io/neural-networks-case-study/#grad
     def __init__(self):
-        super(CrossEntropyLoss, self).__init__()
+        super(CrossEntropy, self).__init__()
 
     def apply(self, p, t):
-        super(CrossEntropyLoss, self).__init__(p, t)
+        super(CrossEntropy, self).__init__(p, t)
         probs = self.soft_max(p)
         loss = -np.log(probs[range(p.shape[0]), np.array(t).squeeze(-1)])
 
@@ -68,3 +68,22 @@ class CrossEntropyLoss(LossFunc, ABC):
         num = np.exp(logits)
         den = np.sum(num, axis=-1, keepdims=True)
         return num / den
+
+
+class BinaryCrossEntropy(LossFunc, ABC):
+    def __init__(self):
+        super(BinaryCrossEntropy, self).__init__()
+
+    def apply(self, p, t):
+        if not isinstance(t, np.ndarray):
+            t = np.asarray(t)
+        if not isinstance(p, np.ndarray):
+            p = np.asarray(p)
+
+        super(BinaryCrossEntropy, self).__init__(p, t)
+        loss = -(t * np.log(p) + (1 - t) * np.log(1 - p))
+        return Loss(np.mean(loss), self.delta)
+
+    @property
+    def delta(self):
+        return self.pred - self.target

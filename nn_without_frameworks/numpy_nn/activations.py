@@ -39,3 +39,11 @@ class Tanh(Activation, ABC):
 
     def derivative(self, x):
         return 1 - self.forward(x) ** 2
+
+
+class Sigmoid(Activation, ABC):
+    def forward(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def derivative(self, x):
+        return self.forward(x) * (1 - self.forward(x))

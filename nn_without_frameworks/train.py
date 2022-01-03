@@ -42,7 +42,7 @@ def train_regression(nn):
     batch_size = 64
 
     my_net = MyNet(1, 1)
-    mse = nn.losses.MSELoss()
+    mse = nn.losses.MSE()
     opt = nn.optims.Adam(my_net.parameters)
     loss_history = []
     smoothed_loss = 0
@@ -94,6 +94,7 @@ def train_classification(nn):
             self.bn = nn.layers.BatchNorm1d(100)
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
+                                          activation=nn.acts.Sigmoid(),
                                           weight_initializer=nn.inits.XavierUniform(),
                                           bias_initializer=nn.inits.Constant(0.),
                                           regularizer_type="l2",
@@ -111,7 +112,7 @@ def train_classification(nn):
 
     num_samples = 100  # number of points per class
     num_features = 2
-    num_classes = 3  # number of classes
+    num_classes = 2  # number of classes
 
     epoch = 500
     batch_size = 64
@@ -127,8 +128,8 @@ def train_classification(nn):
             x[idx][1] = radius * np.cos(angle)
             t[idx][0] = j
 
-    my_net = MyNet(num_features, num_classes)
-    ce_loss = nn.losses.CrossEntropyLoss()
+    my_net = MyNet(num_features, 1)
+    ce_loss = nn.losses.BinaryCrossEntropy()
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
     smoothed_loss = 0
@@ -158,11 +159,11 @@ def train_classification(nn):
         my_net.backward(loss)
         opt.apply()
         if step % 100 == 0:
-            print("Step: %i | loss: %.5f" % (step, tot_loss))
+            print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
     y = my_net.forward(x, True)
-    predicted_class = np.argmax(y, axis=1)
-    print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t).squeeze(-1))))
+    predicted_class = np.where(y > 0.5, 1, 0)  # np.argmax(y, axis=1)
+    print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t))))
     plt.plot(np.arange(len(loss_history)), loss_history)
     plt.figure()
     plt.subplot(121)
@@ -177,11 +178,11 @@ def train_classification(nn):
 if __name__ == "__main__":
     import numpy_nn as nn
 
-    train_regression(nn)
+    # train_regression(nn)
     train_classification(nn)
 
-    import pure_nn as nn
-
+    # import pure_nn as nn
     #
-    train_regression(nn)
-    train_classification(nn)
+    # #
+    # train_regression(nn)
+    # train_classification(nn)
