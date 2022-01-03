@@ -86,4 +86,4 @@ class BinaryCrossEntropy(LossFunc, ABC):
 
     @property
     def delta(self):
-        return self.pred - self.target
+        return np.expand_dims(self.pred - self.target, -1)
