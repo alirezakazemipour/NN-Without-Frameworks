@@ -45,14 +45,10 @@ class Sigmoid(Activation, ABC):
     # http://timvieira.github.io/blog/post/2014/02/11/exp-normalize-trick/
     def forward(self, x):
         """Numerically stable sigmoid function."""
-        if x >= 0:
-            z = np.exp(-x)
-            return 1 / (1 + z)
-        else:
-            # if x is less than zero then z will be small, denom can't be
-            # zero because it's 1+z.
-            z = np.exp(x)
-            return z / (1 + z)
+        # if x is less than zero then z will be small, denom can't be
+        # zero because it's 1+z.
+
+        return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
 
     def derivative(self, x):
         return self.forward(x) * (1 - self.forward(x))
