@@ -42,13 +42,13 @@ class Tanh(Activation, ABC):
 
 
 class Sigmoid(Activation, ABC):
-    # http://timvieira.github.io/blog/post/2014/02/11/exp-normalize-trick/
+    # https://stackoverflow.com/a/48541786/12732481
     def forward(self, x):
         """Numerically stable sigmoid function."""
-        # if x is less than zero then z will be small, denom can't be
-        # zero because it's 1+z.
-
-        return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
+        if -x > np.log(np.finfo(type(x)).max):
+            return 1.
+        a = np.exp(-x)
+        return 1.0 / (1.0 + a)
 
     def derivative(self, x):
         return self.forward(x) * (1 - self.forward(x))
