@@ -9,6 +9,17 @@ def supported_layers():
 class Layer:
     def __init__(self):
         self.vars = {}
+        self._input_shape = None
+
+    def summary(self):
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        output_shape = (None, self.vars["b"].shape[1])
+        return name, output_shape, n_param
+
+    @property
+    def input_shape(self):
+        return self.vars["W"].shape[0]
 
     def forward(self, x, eval=False):
         raise NotImplementedError

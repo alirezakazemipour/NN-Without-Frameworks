@@ -1,5 +1,5 @@
 from .losses import Loss
-from .layers import Layer
+from tabulate import tabulate
 
 
 class Sequential:
@@ -24,3 +24,14 @@ class Sequential:
         delta = loss.delta
         for layer in self._layers[::-1]:
             delta = layer.backward(delta)
+
+    def summary(self):
+        print("\nModel Summary:")
+        data = []
+        name, output_shape, n_param = "Input", (None, self._layers[0].input_shape), 0
+        data.append((name, output_shape, n_param))
+        for i, layer in enumerate(self._layers):
+            name, output_shape, n_param = layer.summary()
+            name += f"[{i}]"
+            data.append((name, output_shape, n_param))
+        print(tabulate(data, headers=["Layer", "Output shape", "Param#"], tablefmt="grid"))

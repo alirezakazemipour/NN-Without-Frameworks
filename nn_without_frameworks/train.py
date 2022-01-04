@@ -147,6 +147,7 @@ def train_classification(nn):
                                            lam=1e-3
                                            )
                            )
+    my_net.summary()
     ce_loss = nn.losses.BinaryCrossEntropy()
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
