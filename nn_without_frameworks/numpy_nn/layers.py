@@ -10,7 +10,7 @@ class Layer:
     def __init__(self):
         self.vars = {}
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         raise NotImplementedError
 
     def backward(self, x):
@@ -62,7 +62,7 @@ class Dense(ParamLayer, ABC):
         self.regularizer_type = regularizer_type
         self.lam = lam
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"

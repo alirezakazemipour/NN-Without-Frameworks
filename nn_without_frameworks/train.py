@@ -128,7 +128,25 @@ def train_classification(nn):
             x[idx][1] = radius * np.cos(angle)
             t[idx][0] = j
 
-    my_net = MyNet(num_features, 1)
+    # my_net = MyNet(num_features, 1)
+    my_net = nn.Sequential(nn.layers.Dense(in_features=num_features,
+                                           out_features=100,
+                                           activation=nn.acts.ReLU(),
+                                           weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           ),
+                           nn.layers.BatchNorm1d(100),
+                           nn.layers.Dense(in_features=100,
+                                           out_features=1,
+                                           activation=nn.acts.Sigmoid(),
+                                           weight_initializer=nn.inits.XavierUniform(),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           )
+                           )
     ce_loss = nn.losses.BinaryCrossEntropy()
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
@@ -139,7 +157,8 @@ def train_classification(nn):
             idx = random.randint(0, len(x) - 1)
             batch[i] = x[idx]
             target[i] = t[idx]
-        y = my_net(batch)
+        y = my_net(batch, False).squeeze(-1)
+        target = np.asarray(target).squeeze(-1)
         loss = ce_loss(y, target)
         if nn.__name__ == "pure_nn":
             tot_loss = loss.value + \
@@ -148,9 +167,9 @@ def train_classification(nn):
                        0.5 * my_net.output.lam * np.sum(
                 nn.utils.element_wise_mul(my_net.output.vars["W"], my_net.output.vars["W"]))
         else:
-            tot_loss = loss.value + \
-                       0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
-                       0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
+            tot_loss = loss.value #+ \
+                       # 0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
+                       # 0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
         if step == 0:
             smoothed_loss = tot_loss
         else:
