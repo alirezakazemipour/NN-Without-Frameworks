@@ -148,6 +148,8 @@ def train_classification(nn):
                                            )
                            )
     my_net.summary()
+    weights = nn.load("weights.pkl")
+    my_net.set_weights(weights)
     ce_loss = nn.losses.BinaryCrossEntropy()
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
@@ -181,6 +183,7 @@ def train_classification(nn):
         if step % 100 == 0:
             print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
+    nn.save(my_net.parameters, "weights.pkl")
     y = my_net.forward(x, True)
     predicted_class = np.where(y > 0.5, 1, 0)  # np.argmax(y, axis=1)
     print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t))))
@@ -192,7 +195,7 @@ def train_classification(nn):
     plt.subplot(122)
     plt.title("real classes")
     plt.scatter(np.array(x)[:, 0], np.array(x)[:, 1], c=np.array(t), s=40, cmap=plt.cm.Spectral)
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":

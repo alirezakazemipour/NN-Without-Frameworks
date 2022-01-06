@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 from .module import Module
 from .sequential import Sequential
@@ -10,3 +11,13 @@ from . import optimizers as optims
 
 def seed(seed):
     np.random.seed(seed)
+
+
+def save(file: object, name: str):
+    with open(name, 'wb') as f:
+        pickle.dump(file, f)
+
+
+def load(name: str):
+    with open(name, 'rb') as f:
+        return pickle.load(f)

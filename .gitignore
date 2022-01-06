@@ -186,3 +186,5 @@ hs_err_pid*
 production/
 build-cpp_nn-Desktop-Debug/
 *.pro.user
+*.pickle
+*.pkl

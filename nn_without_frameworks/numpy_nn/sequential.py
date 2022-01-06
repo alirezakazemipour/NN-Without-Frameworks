@@ -42,3 +42,10 @@ class Sequential:
 
         print(tabulate(data, headers=["Layer", "Output shape", "Param#"], tablefmt="grid"))
         print(f"total trainable parameters: {total_param}\n")
+
+    def set_weights(self, params):
+        self._parameters = params
+        for i, layer in enumerate(self._layers):
+            self._layers[i].vars = self._parameters[i]
+
+
