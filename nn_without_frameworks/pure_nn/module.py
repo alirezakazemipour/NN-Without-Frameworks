@@ -27,5 +27,5 @@ class Module:
     def backward(self, loss):
         assert isinstance(loss, Loss)
         delta = loss.delta
-        for name, layer in zip(list(self._parameters.keys())[::-1], self._layers[::-1]):
+        for layer in self._layers[::-1]:
             delta = layer.backward(delta)

@@ -197,6 +197,7 @@ def train_classification(nn):
 
 if __name__ == "__main__":
     import numpy_nn as nn
+    nn.seed(123)
 
     # train_regression(nn)
     train_classification(nn)

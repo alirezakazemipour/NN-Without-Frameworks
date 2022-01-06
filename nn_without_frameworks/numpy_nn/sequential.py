@@ -34,4 +34,11 @@ class Sequential:
             name, output_shape, n_param = layer.summary()
             name += f"[{i}]"
             data.append((name, output_shape, n_param))
+
+        total_param = 0
+        for x in data:
+            *_, n_param = x
+            total_param += n_param
+
         print(tabulate(data, headers=["Layer", "Output shape", "Param#"], tablefmt="grid"))
+        print(f"total trainable parameters: {total_param}\n")

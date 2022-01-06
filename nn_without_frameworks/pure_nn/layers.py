@@ -1,3 +1,5 @@
+import numpy as np
+
 from .utils import *
 from .activations import *
 from .initializers import *
@@ -64,6 +66,8 @@ class Dense(ParamLayer, ABC):
         self.lam = lam
 
     def forward(self, x):
+        if isinstance(x, np.ndarray):
+            x = np.ndarray.tolist(x)
         assert isinstance(x, list)
         assert isinstance(x[0], list), "Feed the input to the network in batch mode: (batch_size, n_dims)"
         self.input = x
