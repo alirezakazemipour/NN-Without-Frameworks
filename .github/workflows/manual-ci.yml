@@ -16,8 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: install numpy matplotlib
-      run: pip install numpy matplotlib
+    - name: install numpy matplotlib tabulate
+      run: pip install numpy matplotlib tabulate
     - name: run train.py
       run: python python_nn/train.py
     - name: run nn_without_frameworks/train.py
