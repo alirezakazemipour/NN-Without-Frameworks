@@ -103,11 +103,11 @@ class BinaryFocal(LossFunc, ABC):
             p = np.asarray(p)
 
         super(BinaryFocal, self).__init__(p, t)
-        loss = -self.alpha * (1 - p) ** self.gamma * binary_cross_entropy(p + self.eps, t)
+        loss = -self.alpha * (1 - p) ** self.gamma * binary_cross_entropy(p, t)
         return Loss(np.mean(loss), self.delta)
 
     @property
     def delta(self):
         return np.expand_dims(self.alpha * (1 - self.pred) ** (self.gamma - 1) * (
-                1 + self.gamma * binary_cross_entropy(self.pred + self.eps, self.target) -
+                1 + self.gamma * binary_cross_entropy(self.pred, self.target) -
                 self.target / (self.pred + self.eps)), -1)
