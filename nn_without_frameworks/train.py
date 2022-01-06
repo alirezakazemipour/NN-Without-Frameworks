@@ -150,7 +150,7 @@ def train_classification(nn):
     my_net.summary()
     weights = nn.load("weights.pkl")
     my_net.set_weights(weights)
-    ce_loss = nn.losses.BinaryCrossEntropy()
+    ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
     smoothed_loss = 0
@@ -195,7 +195,7 @@ def train_classification(nn):
     plt.subplot(122)
     plt.title("real classes")
     plt.scatter(np.array(x)[:, 0], np.array(x)[:, 1], c=np.array(t), s=40, cmap=plt.cm.Spectral)
-    # plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":

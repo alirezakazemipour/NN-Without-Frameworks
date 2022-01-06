@@ -1,5 +1,5 @@
 import numpy as np
-
+from .utils import binary_cross_entropy
 from abc import ABC
 
 
@@ -82,9 +82,32 @@ class BinaryCrossEntropy(LossFunc, ABC):
             p = np.asarray(p)
 
         super(BinaryCrossEntropy, self).__init__(p, t)
-        loss = -(t * np.log(p + self.eps) + (1 - t) * np.log(1 - p + self.eps))
+        loss = -binary_cross_entropy(p + self.eps, t)
         return Loss(np.mean(loss), self.delta)
 
     @property
     def delta(self):
         return np.expand_dims(self.pred - self.target, -1)
+
+
+class BinaryFocal(LossFunc, ABC):
+    def __init__(self, gamma=2, alpha=0.25):
+        self.gamma = gamma
+        self.alpha = alpha
+        super(BinaryFocal, self).__init__()
+
+    def apply(self, p, t):
+        if not isinstance(t, np.ndarray):
+            t = np.asarray(t)
+        if not isinstance(p, np.ndarray):
+            p = np.asarray(p)
+
+        super(BinaryFocal, self).__init__(p, t)
+        loss = -self.alpha * (1 - p) ** self.gamma * binary_cross_entropy(p + self.eps, t)
+        return Loss(np.mean(loss), self.delta)
+
+    @property
+    def delta(self):
+        return np.expand_dims(self.alpha * (1 - self.pred) ** (self.gamma - 1) * (
+                1 + self.gamma * binary_cross_entropy(self.pred + self.eps, self.target) -
+                self.target / (self.pred + self.eps)), -1)
