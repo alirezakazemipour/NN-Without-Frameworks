@@ -82,7 +82,7 @@ class BinaryCrossEntropy(LossFunc, ABC):
             p = np.asarray(p)
 
         super(BinaryCrossEntropy, self).__init__(p, t)
-        loss = -binary_cross_entropy(p + self.eps, t)
+        loss = -binary_cross_entropy(p, t)
         return Loss(np.mean(loss), self.delta)
 
     @property
