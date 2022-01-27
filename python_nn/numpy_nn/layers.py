@@ -2,6 +2,10 @@ from .initializers import *
 from .activations import *
 
 
+# TODO:
+# __str__()
+# __repr__()
+
 def supported_layers():
     return [x.__name__ for x in ParamLayer.__subclasses__()]
 
@@ -9,12 +13,26 @@ def supported_layers():
 class Layer:
     def __init__(self):
         self.vars = {}
+        self._input_shape = None
 
-    def forward(self, x):
+    def summary(self):
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        output_shape = (None, self.vars["b"].shape[1])
+        return name, output_shape, n_param
+
+    @property
+    def input_shape(self):
+        return self.vars["W"].shape[0]
+
+    def forward(self, x, eval=False):
         raise NotImplementedError
 
     def backward(self, x):
         raise NotImplementedError
+
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
 
 
 class ParamLayer(Layer, ABC):
@@ -62,7 +80,7 @@ class Dense(ParamLayer, ABC):
         self.regularizer_type = regularizer_type
         self.lam = lam
 
-    def forward(self, x):
+    def forward(self, x, eval=False):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
@@ -88,8 +106,8 @@ class Dense(ParamLayer, ABC):
         delta = dz.dot(self.vars["W"].T)
         return delta
 
-    def __call__(self, x):
-        return self.forward(x)
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
 
 
 class BatchNorm1d(ParamLayer, ABC):

@@ -39,3 +39,14 @@ class Tanh(Activation, ABC):
 
     def derivative(self, x):
         return 1 - self.forward(x) ** 2
+
+
+class Sigmoid(Activation, ABC):
+    # https://stackoverflow.com/a/23194336/12732481
+    def forward(self, x):
+        """Numerically stable sigmoid function."""
+        x = np.clip(x, -500, 500)
+        return 1 / (1 + np.exp(-x))
+
+    def derivative(self, x):
+        return self.forward(x) * (1 - self.forward(x))

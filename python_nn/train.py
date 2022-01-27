@@ -42,7 +42,7 @@ def train_regression(nn):
     batch_size = 64
 
     my_net = MyNet(1, 1)
-    mse = nn.losses.MSELoss()
+    mse = nn.losses.MSE()
     opt = nn.optims.Adam(my_net.parameters)
     loss_history = []
     smoothed_loss = 0
@@ -94,6 +94,7 @@ def train_classification(nn):
             self.bn = nn.layers.BatchNorm1d(100)
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
+                                          activation=nn.acts.Sigmoid(),
                                           weight_initializer=nn.inits.XavierUniform(),
                                           bias_initializer=nn.inits.Constant(0.),
                                           regularizer_type="l2",
@@ -106,12 +107,12 @@ def train_classification(nn):
             x = self.output(x)
             return x
 
-    np.random.seed(1)
-    random.seed(1)
+    np.random.seed(123)
+    random.seed(123)
 
     num_samples = 100  # number of points per class
     num_features = 2
-    num_classes = 3  # number of classes
+    num_classes = 2  # number of classes
 
     epoch = 500
     batch_size = 64
@@ -127,8 +128,31 @@ def train_classification(nn):
             x[idx][1] = radius * np.cos(angle)
             t[idx][0] = j
 
-    my_net = MyNet(num_features, num_classes)
-    ce_loss = nn.losses.CrossEntropyLoss()
+    # my_net = MyNet(num_features, 1)
+    my_net = nn.Sequential(nn.layers.Dense(in_features=num_features,
+                                           out_features=100,
+                                           activation=nn.acts.ReLU(),
+                                           weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           ),
+                           nn.layers.BatchNorm1d(100),
+                           nn.layers.Dense(in_features=100,
+                                           out_features=1,
+                                           activation=nn.acts.Sigmoid(),
+                                           weight_initializer=nn.inits.XavierUniform(),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           )
+                           )
+    print(my_net.parameters[0]["W"])
+    exit()
+    my_net.summary()
+    weights = nn.load("weights.pkl")
+    my_net.set_weights(weights)
+    ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
     smoothed_loss = 0
@@ -138,7 +162,8 @@ def train_classification(nn):
             idx = random.randint(0, len(x) - 1)
             batch[i] = x[idx]
             target[i] = t[idx]
-        y = my_net(batch)
+        y = my_net(batch, False).squeeze(-1)
+        target = np.asarray(target).squeeze(-1)
         loss = ce_loss(y, target)
         if nn.__name__ == "pure_nn":
             tot_loss = loss.value + \
@@ -147,9 +172,9 @@ def train_classification(nn):
                        0.5 * my_net.output.lam * np.sum(
                 nn.utils.element_wise_mul(my_net.output.vars["W"], my_net.output.vars["W"]))
         else:
-            tot_loss = loss.value + \
-                       0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
-                       0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
+            tot_loss = loss.value #+ \
+                       # 0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
+                       # 0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
         if step == 0:
             smoothed_loss = tot_loss
         else:
@@ -160,9 +185,10 @@ def train_classification(nn):
         if step % 100 == 0:
             print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
+    nn.save(my_net.parameters, "weights.pkl")
     y = my_net.forward(x, True)
-    predicted_class = np.argmax(y, axis=1)
-    print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t).squeeze(-1))))
+    predicted_class = np.where(y > 0.5, 1, 0)  # np.argmax(y, axis=1)
+    print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t))))
     plt.plot(np.arange(len(loss_history)), loss_history)
     plt.figure()
     plt.subplot(121)
@@ -176,12 +202,14 @@ def train_classification(nn):
 
 if __name__ == "__main__":
     import numpy_nn as nn
+    nn.seed(123)
 
     # train_regression(nn)
     train_classification(nn)
 
-    import pure_nn as nn
-
+    # import pure_nn as nn
     #
+    # #
     # train_regression(nn)
-    train_classification(nn)
+    # train_classification(nn)
+

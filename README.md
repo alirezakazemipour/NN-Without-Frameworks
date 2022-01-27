@@ -213,7 +213,7 @@ for(int step = 0; step < num_epoch; step++){
 ```
 ## Acknowledgement 
 - Current code is inspired by the elegant and simple repository [Simple Neural Networks](https://github.com/MorvanZhou/simple-neural-networks) by [@MorvanZhou ](https://github.com/MorvanZhou).
-- Mathematical foundation of different parts is based on slides of [CS W182 / 282A](https://cs182sp21.github.io/) course.
+- Mathematical foundation of different parts is based on slides of [CS W182 / 282A](https://cs182sp21.github.io/) and [CS231n](https://cs231n.github.io/) courses.
 ## Contributing
 - The current code is far from done and any fix, suggestion, pull request, issue, etc is highly appreciated and welcome. 🤗
 - Current work focuses on discovering what is under the hood rather optimization involved in implementing ideas so, feel free to conduct sanity-checks behind the math and correctness of each part and/or if you come up with a better or optimized solution, please don't hesitate to bring up a PR. [thank you in advance. 😊]

@@ -1,13 +1,11 @@
 from .losses import Loss
-from .layers import ParamLayer
 from tabulate import tabulate
 
 
 class Sequential:
     def __init__(self, *args):
         self._layers = args
-        self._parameters = {i: self._layers[i].vars for i in range(len(self._layers)) if
-                            isinstance(self._layers[i], ParamLayer)}
+        self._parameters = {i: self._layers[i].vars for i in range(len(self._layers))}
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -33,10 +31,7 @@ class Sequential:
         name, output_shape, n_param = "Input", (None, self._layers[0].input_shape), 0
         data.append((name, output_shape, n_param))
         for i, layer in enumerate(self._layers):
-            if isinstance(layer, ParamLayer):
-                name, output_shape, n_param = layer.summary()
-            else:
-                name, n_param, output_shape = *layer.summary(), output_shape
+            name, output_shape, n_param = layer.summary()
             name += f"[{i}]"
             data.append((name, output_shape, n_param))
 
@@ -51,5 +46,6 @@ class Sequential:
     def set_weights(self, params):
         self._parameters = params
         for i, layer in enumerate(self._layers):
-            if isinstance(self._layers[i], ParamLayer):
-                self._layers[i].vars = self._parameters[i]
+            self._layers[i].vars = self._parameters[i]
+
+

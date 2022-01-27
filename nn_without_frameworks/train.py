@@ -107,8 +107,8 @@ def train_classification(nn):
             x = self.output(x)
             return x
 
-    np.random.seed(1)
-    random.seed(1)
+    np.random.seed(123)
+    random.seed(123)
 
     num_samples = 100  # number of points per class
     num_features = 2
@@ -134,22 +134,23 @@ def train_classification(nn):
                                            activation=nn.acts.ReLU(),
                                            weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
                                            bias_initializer=nn.inits.Constant(0.),
-                                           regularizer_type="l2",
-                                           lam=1e-3
+                                           # regularizer_type="l2",
+                                           # lam=1e-3
                                            ),
-                           nn.layers.BatchNorm1d(100),
+                           # nn.layers.BatchNorm1d(100),
+                           nn.layers.Dropout(p=0.5),
                            nn.layers.Dense(in_features=100,
                                            out_features=1,
                                            activation=nn.acts.Sigmoid(),
                                            weight_initializer=nn.inits.XavierUniform(),
                                            bias_initializer=nn.inits.Constant(0.),
-                                           regularizer_type="l2",
-                                           lam=1e-3
+                                           # regularizer_type="l2",
+                                           # lam=1e-3
                                            )
                            )
     my_net.summary()
-    weights = nn.load("weights.pkl")
-    my_net.set_weights(weights)
+    # weights = nn.load("weights.pkl")
+    # my_net.set_weights(weights)
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []

@@ -2,30 +2,23 @@ from .initializers import *
 from .activations import *
 
 
+# TODO:
+# __str__()
+# __repr__()
+
 def supported_layers():
     return [x.__name__ for x in ParamLayer.__subclasses__()]
 
 
 class Layer:
-    def __init__(self):
-        self.vars = {}
-        self._input_shape = None
-
-    def summary(self):
-        name = self.__class__.__name__
-        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
-        output_shape = (None, self.vars["b"].shape[1])
-        return name, output_shape, n_param
-
-    @property
-    def input_shape(self):
-        return self.vars["W"].shape[0]
-
     def forward(self, x, eval=False):
         raise NotImplementedError
 
     def backward(self, x):
         raise NotImplementedError
+
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
 
 
 class ParamLayer(Layer, ABC):
@@ -36,18 +29,26 @@ class ParamLayer(Layer, ABC):
                  regularizer_type: str = None,
                  lam: float = 0.
                  ):
-        super().__init__()
-
-        self.vars["W"] = weight_initializer.initialize(weight_shape)
-        self.vars["b"] = bias_initializer.initialize((1, weight_shape[1]))
-        self.vars["dW"] = np.zeros(weight_shape)
-        self.vars["db"] = np.zeros((1, weight_shape[1]))
+        self.vars = {"W": weight_initializer.initialize(weight_shape),
+                     "b": bias_initializer.initialize((1, weight_shape[1])),
+                     "dW": np.zeros(weight_shape),
+                     "db": np.zeros((1, weight_shape[1]))}
 
         self.z = None
         self.input = None
 
         self.regularizer_type = regularizer_type
         self.lam = lam
+
+    def summary(self):
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        output_shape = (None, self.vars["b"].shape[1])
+        return name, output_shape, n_param
+
+    @property
+    def input_shape(self):
+        return self.vars["W"].shape[0]
 
 
 class Dense(ParamLayer, ABC):
@@ -91,6 +92,7 @@ class Dense(ParamLayer, ABC):
 
         if self.regularizer_type == "l2":
             self.vars["dW"] += self.lam * self.vars["W"]
+            # Biases are not regularized: https://cs231n.github.io/neural-networks-2/#reg
             # self.vars["db"] += self.lam * self.vars["b"]
         elif self.regularizer_type == "l1":
             self.vars["dW"] += self.lam
@@ -99,8 +101,8 @@ class Dense(ParamLayer, ABC):
         delta = dz.dot(self.vars["W"].T)
         return delta
 
-    def __call__(self, x):
-        return self.forward(x)
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
 
 
 class BatchNorm1d(ParamLayer, ABC):
@@ -147,6 +149,43 @@ class BatchNorm1d(ParamLayer, ABC):
         delta = (m * dx_hat - np.sum(dx_hat, axis=0, keepdims=True) - self.x_hat * np.sum(
             dx_hat * self.x_hat, axis=0, keepdims=True)) / (m * np.sqrt(self.std ** 2 + self.eps))
         return delta
+
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
+
+
+class Dropout(Layer, ABC):
+    """
+    - References:
+        1. https://cs231n.github.io/neural-networks-2/#reg
+        2. https://deepnotes.io/dropout
+    """
+
+    def __init__(self, p: float = 0.5):
+        """
+        :param p: float
+        Probability of keeping a neuron active.
+        """
+
+        self.p = p
+        self.mask = None
+
+    def forward(self, x, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        if not eval:
+            self.mask = (np.random.rand(*x.shape) < self.p) / self.p
+            return x * self.mask
+        else:
+            return x
+
+    def backward(self, delta):
+        return delta * self.mask
+
+    def summary(self):
+        name = self.__class__.__name__
+        return name, 0
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)

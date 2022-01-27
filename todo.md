@@ -18,3 +18,6 @@
 - [x]  Make the Readme more expressive
 - [ ]  Add Checkpoint saving & restoring
 - [ ] Add strassen matrix multiplication
+- [ ] Add GPU support (Numba)
+- [ ] Docstrings
+- [ ] LSTM
