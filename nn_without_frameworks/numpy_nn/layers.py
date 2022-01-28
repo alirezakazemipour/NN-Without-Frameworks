@@ -1,5 +1,4 @@
-import numpy as np
-
+from collections import namedtuple
 from .initializers import *
 from .activations import *
 
@@ -199,8 +198,8 @@ class Dropout(Layer, ABC):
 class LSTMCell(ParamLayer, ABC):
     """
     - References:
-        1. https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L3857
-        2. http://arunmallya.github.io/writeups/nn/lstm/index.html#/7
+        1. https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py
+        2. http://arunmallya.github.io/writeups/nn/lstm/index.html#/
         3. http://cs231n.stanford.edu/slides/2019/cs231n_2019_lecture10.pdf
     """
 
@@ -225,58 +224,120 @@ class LSTMCell(ParamLayer, ABC):
         self.regularizer_type = regularizer_type
         self.lam = lam
 
-        self.c_t = None
-        self.o = None
-        self.g = None
-        self.c = None
-        self.i = None
-        self.f = None
-        self.g_hat = None
+        self.Buffer = namedtuple("Buffer", ["input", "ct", "ot", "gt", "it", "ct_1", "ft", "gt_hat", "dht_1", "dct_1"])
+        self.t = 0
+        self.buffer = {}
 
-    def forward(self, x, h, c, eval=False):
+    def forward(self, x, ht_1, ct_1, eval=False):
+        self.buffer[self.t] = self.Buffer(None, None, None, None, None, None, None, None, None, None)
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
-        self.input = np.hstack([x, h])
-        self.c = c
-        z = self.input.dot(self.vars["W"]) + self.vars["b"]
-        i_hat, f_hat, o_hat, self.g_hat = np.split(z, 4, axis=-1)
-        self.i = Sigmoid.forward(i_hat)
-        self.f = Sigmoid.forward(f_hat)
-        self.o = Sigmoid.forward(o_hat)
-        self.g = np.tanh(self.g_hat)
-        self.c_t = self.f * c + self.i * self.g
-        h_t = self.o * np.tanh(self.c_t)
-        return h_t, self.c_t
+        input = np.hstack([x, ht_1])
+        self.buffer[self.t] = self.buffer[self.t]._replace(input=input)
+        self.buffer[self.t] = self.buffer[self.t]._replace(ct_1=ct_1)
+        zt = input.dot(self.vars["W"]) + self.vars["b"]
+        it_hat, ft_hat, ot_hat, gt_hat = np.split(zt, 4, axis=-1)
+        self.buffer[self.t] = self.buffer[self.t]._replace(gt_hat=gt_hat)
+        it = Sigmoid.forward(it_hat)
+        self.buffer[self.t] = self.buffer[self.t]._replace(it=it)
+        ft = Sigmoid.forward(ft_hat)
+        self.buffer[self.t] = self.buffer[self.t]._replace(ft=ft)
+        ot = Sigmoid.forward(ot_hat)
+        self.buffer[self.t] = self.buffer[self.t]._replace(ot=ot)
+        gt = np.tanh(gt_hat)
+        self.buffer[self.t] = self.buffer[self.t]._replace(gt=gt)
+        ct = ft * ct_1 + it * gt
+        self.buffer[self.t] = self.buffer[self.t]._replace(ct=ct)
+        ht = ot * np.tanh(ct)
+        return ht, ct
 
     def backward(self, **delta):
-        dh_t = delta.get("h_t", delta["delta"])
-        dc_t = delta.get("c_t", np.zeros_like(dh_t))
-        do = dh_t * np.tanh(self.c_t)
-        dc_t += dh_t * self.o * (1 - np.tanh(self.c_t) ** 2)
-        di = dc_t * self.g
-        df = dc_t * self.c
-        dg = dc_t * self.i
-        dc = dc_t * self.f
-        dg_hat = dg * (1 - np.tanh(self.g_hat) ** 2)
-        di_hat = di * self.i * (1 - self.i)
-        df_hat = df * self.f * (1 - self.f)
-        do_hat = do * self.o * (1 - self.o)
-        dz = np.hstack([di_hat, df_hat, do_hat, dg_hat])
+        dht = delta.get("dht", delta["delta"])
+        dct = delta.get("dct", np.zeros_like(dht))
+        ct = self.buffer[self.t].ct
+        do = dht * np.tanh(ct)
+        ot = self.buffer[self.t].ot
+        dct += dht * ot * (1 - np.tanh(ct) ** 2)
+        gt = self.buffer[self.t].gt
+        dit = dct * gt
+        ct_1 = self.buffer[self.t].ct_1
+        dft = dct * ct_1
+        it = self.buffer[self.t].it
+        dgt = dct * it
+        ft = self.buffer[self.t].ft
+        dct_1 = dct * ft
+        self.buffer[self.t] = self.buffer[self.t]._replace(dct_1=dct_1)
+        gt_hat = self.buffer[self.t].gt_hat
+        dgt_hat = dgt * (1 - np.tanh(gt_hat) ** 2)
+        dit_hat = dit * it * (1 - it)
+        dft_hat = dft * ft * (1 - ft)
+        dot_hat = do * ot * (1 - ot)
+        dzt = np.hstack([dit_hat, dft_hat, dot_hat, dgt_hat])
 
-        self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
-        self.vars["db"] = np.sum(dz, axis=0, keepdims=True) / dz.shape[0]
+        input = self.buffer[self.t].input
+        self.vars["dW"] = input.T.dot(dzt) / dzt.shape[0]
+        self.vars["db"] = np.sum(dzt, axis=0, keepdims=True) / dzt.shape[0]
 
-        dinput = dz.dot(self.vars["W"].T)
-        dx, dh = np.split(dinput, [self.in_features], axis=-1)
+        if self.regularizer_type == "l2":
+            self.vars["dW"] += self.lam * self.vars["W"]
+        elif self.regularizer_type == "l1":
+            self.vars["dW"] += self.lam
 
-        return dict(delta=dx, h_t=dh, c_t=dc)
+        dinput = dzt.dot(self.vars["W"].T)
+        dx, dht_1 = np.split(dinput, [self.in_features], axis=-1)
+        self.buffer[self.t] = self.buffer[self.t]._replace(dht_1=dht_1)
+
+        return dict(delta=dx)
 
     def summary(self):
         name = self.__class__.__name__
         n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
         output_shape = (None, self.vars["b"].shape[1] // 4)
         return name, output_shape, n_param
+
+    def __call__(self, x, h, c, eval=False):
+        return self.forward(x, h, c, eval)
+
+
+class LSTM(LSTMCell, ABC):
+    """
+    - References:
+        1. https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py
+        2. http://arunmallya.github.io/writeups/nn/lstm/index.html#/
+    """
+
+    def __init__(self, **kwargs):
+        super(LSTM, self).__init__(**kwargs)
+        self.seq_len = None
+
+    def forward(self, x, h, c, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) == 3, "x should be in (batch_size, sequence_length, in_features) shape!"
+        output = []
+        batch_size, self.seq_len, num_feats = x.shape
+        for t in range(self.seq_len):
+            self.t = t
+            h, c = super(LSTM, self).forward(x[:, t, :], h, c, eval)
+            output.append(h)
+        return np.stack(output, axis=-2), h, c
+
+    def backward(self, **delta):
+        dW, db = 0, 0
+        for t in reversed(range(self.seq_len)):
+            self.t = t
+            delta = super(LSTM, self).backward(**delta)
+            delta["dht"] = self.buffer[self.t].dht_1
+            delta["dct"] = self.buffer[self.t].dct_1
+            dW += self.vars["dW"]
+            db += self.vars["db"]
+
+        self.vars["dW"] = dW
+        self.vars["db"] = db
+        delta.pop("dht")
+        delta.pop("dct")
+        return delta
 
     def __call__(self, x, h, c, eval=False):
         return self.forward(x, h, c, eval)
