@@ -147,11 +147,9 @@ def train_classification(nn):
                                            lam=1e-3
                                            )
                            )
-    print(my_net.parameters[0]["W"])
-    exit()
     my_net.summary()
-    weights = nn.load("weights.pkl")
-    my_net.set_weights(weights)
+    # weights = nn.load("weights.pkl")
+    # my_net.set_weights(weights)
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []

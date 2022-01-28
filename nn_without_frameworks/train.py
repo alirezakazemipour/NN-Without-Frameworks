@@ -91,8 +91,16 @@ def train_classification(nn):
                                           regularizer_type="l2",
                                           lam=1e-3
                                           )
+            self.dropout = nn.layers.Dropout(0.5)
             self.bn = nn.layers.BatchNorm1d(100)
-            self.output = nn.layers.Dense(in_features=100,
+            self.lstm_cell = nn.layers.LSTMCell(in_features=100,
+                                                hidden_size=20,
+                                                weight_initializer=nn.inits.XavierUniform(),
+                                                bias_initializer=nn.inits.Constant(0.),
+                                                regularizer_type="l2",
+                                                lam=0.
+                                                )
+            self.output = nn.layers.Dense(in_features=20,
                                           out_features=self.out_dim,
                                           activation=nn.acts.Sigmoid(),
                                           weight_initializer=nn.inits.XavierUniform(),
@@ -102,10 +110,13 @@ def train_classification(nn):
                                           )
 
         def forward(self, x, eval=False):
+            x, h, c = x
             x = self.hidden(x)
+            x = self.dropout(x)
             x = self.bn(x, eval)
-            x = self.output(x)
-            return x
+            h, c = self.lstm_cell(x, h, c)
+            x = self.output(h)
+            return x, h, c
 
     np.random.seed(123)
     random.seed(123)
@@ -128,40 +139,42 @@ def train_classification(nn):
             x[idx][1] = radius * np.cos(angle)
             t[idx][0] = j
 
-    # my_net = MyNet(num_features, 1)
-    my_net = nn.Sequential(nn.layers.Dense(in_features=num_features,
-                                           out_features=100,
-                                           activation=nn.acts.ReLU(),
-                                           weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-                                           bias_initializer=nn.inits.Constant(0.),
-                                           # regularizer_type="l2",
-                                           # lam=1e-3
-                                           ),
-                           # nn.layers.BatchNorm1d(100),
-                           nn.layers.Dropout(p=0.5),
-                           nn.layers.Dense(in_features=100,
-                                           out_features=1,
-                                           activation=nn.acts.Sigmoid(),
-                                           weight_initializer=nn.inits.XavierUniform(),
-                                           bias_initializer=nn.inits.Constant(0.),
-                                           # regularizer_type="l2",
-                                           # lam=1e-3
-                                           )
-                           )
+    my_net = MyNet(num_features, 1)
+    # my_net = nn.Sequential(nn.layers.Dense(in_features=num_features,
+    #                                        out_features=100,
+    #                                        activation=nn.acts.ReLU(),
+    #                                        weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+    #                                        bias_initializer=nn.inits.Constant(0.),
+    #                                        # regularizer_type="l2",
+    #                                        # lam=1e-3
+    #                                        ),
+    #                        # nn.layers.BatchNorm1d(100),
+    #                        nn.layers.Dropout(p=0.5),
+    #                        nn.layers.Dense(in_features=100,
+    #                                        out_features=1,
+    #                                        activation=nn.acts.Sigmoid(),
+    #                                        weight_initializer=nn.inits.XavierUniform(),
+    #                                        bias_initializer=nn.inits.Constant(0.),
+    #                                        # regularizer_type="l2",
+    #                                        # lam=1e-3
+    #                                        )
+    #                        )
     my_net.summary()
-    # weights = nn.load("weights.pkl")
-    # my_net.set_weights(weights)
+    weights = nn.load("weights.pkl")
+    my_net.set_weights(weights)
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
     smoothed_loss = 0
+    h, c = np.zeros((batch_size, 20)), np.zeros((batch_size, 20))
     for step in range(epoch):
         batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
         for i in range(batch_size):
             idx = random.randint(0, len(x) - 1)
             batch[i] = x[idx]
             target[i] = t[idx]
-        y = my_net(batch, False).squeeze(-1)
+        y, h, c = my_net((batch, h, c), False)
+        y = y.squeeze(-1)
         target = np.asarray(target).squeeze(-1)
         loss = ce_loss(y, target)
         if nn.__name__ == "pure_nn":
@@ -171,9 +184,9 @@ def train_classification(nn):
                        0.5 * my_net.output.lam * np.sum(
                 nn.utils.element_wise_mul(my_net.output.vars["W"], my_net.output.vars["W"]))
         else:
-            tot_loss = loss.value #+ \
-                       # 0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
-                       # 0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
+            tot_loss = loss.value  # + \
+            # 0.5 * my_net.hidden.lam * np.sum(my_net.hidden.vars["W"] ** 2) + \
+            # 0.5 * my_net.output.lam * np.sum(my_net.output.vars["W"] ** 2)
         if step == 0:
             smoothed_loss = tot_loss
         else:
@@ -185,7 +198,7 @@ def train_classification(nn):
             print("Step: %i | loss: %.5f" % (step, smoothed_loss))
 
     nn.save(my_net.parameters, "weights.pkl")
-    y = my_net.forward(x, True)
+    y, *_ = my_net.forward((x, np.zeros((num_samples * num_features, 20)), np.zeros((num_samples * num_features, 20))), True)
     predicted_class = np.where(y > 0.5, 1, 0)  # np.argmax(y, axis=1)
     print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t))))
     plt.plot(np.arange(len(loss_history)), loss_history)
@@ -201,6 +214,7 @@ def train_classification(nn):
 
 if __name__ == "__main__":
     import numpy_nn as nn
+
     nn.seed(123)
 
     # train_regression(nn)

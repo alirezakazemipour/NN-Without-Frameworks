@@ -1,3 +1,5 @@
+import numpy as np
+
 from .initializers import *
 from .activations import *
 
@@ -11,14 +13,14 @@ def supported_layers():
 
 
 class Layer:
-    def forward(self, x, eval=False):
+    def forward(self, **kwargs):
         raise NotImplementedError
 
-    def backward(self, x):
+    def backward(self, **x):
         raise NotImplementedError
 
-    def __call__(self, x, eval=False):
-        return self.forward(x, eval)
+    def __call__(self, **kwargs):
+        return self.forward(**kwargs)
 
 
 class ParamLayer(Layer, ABC):
@@ -84,8 +86,9 @@ class Dense(ParamLayer, ABC):
         a = self.act(z)
         return a
 
-    def backward(self, delta):
+    def backward(self, **delta):
         #  https://cs182sp21.github.io/static/slides/lec-5.pdf
+        delta = delta["delta"]
         dz = delta * self.act.derivative(self.z)
         self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
         self.vars["db"] = np.sum(dz, axis=0, keepdims=True) / dz.shape[0]
@@ -99,7 +102,7 @@ class Dense(ParamLayer, ABC):
             # self.vars["db"] += self.lam
 
         delta = dz.dot(self.vars["W"].T)
-        return delta
+        return dict(delta=delta)
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -138,8 +141,9 @@ class BatchNorm1d(ParamLayer, ABC):
         y = self.vars["W"] * x_hat + self.vars["b"]
         return y
 
-    def backward(self, delta):
+    def backward(self, **delta):
         #  https://kevinzakka.github.io/2016/09/14/batch_normalization/
+        delta = delta["delta"]
         dz = delta
         dx_hat = dz * self.vars["W"]
         m = dz.shape[0]
@@ -148,7 +152,7 @@ class BatchNorm1d(ParamLayer, ABC):
 
         delta = (m * dx_hat - np.sum(dx_hat, axis=0, keepdims=True) - self.x_hat * np.sum(
             dx_hat * self.x_hat, axis=0, keepdims=True)) / (m * np.sqrt(self.std ** 2 + self.eps))
-        return delta
+        return dict(delta=delta)
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -180,8 +184,9 @@ class Dropout(Layer, ABC):
         else:
             return x
 
-    def backward(self, delta):
-        return delta * self.mask
+    def backward(self, **delta):
+        delta = delta["delta"]
+        return dict(delta=delta * self.mask)
 
     def summary(self):
         name = self.__class__.__name__
@@ -189,3 +194,89 @@ class Dropout(Layer, ABC):
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
+
+
+class LSTMCell(ParamLayer, ABC):
+    """
+    - References:
+        1. https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L3857
+        2. http://arunmallya.github.io/writeups/nn/lstm/index.html#/7
+        3. http://cs231n.stanford.edu/slides/2019/cs231n_2019_lecture10.pdf
+    """
+
+    def __init__(self, in_features: int,
+                 hidden_size: int,
+                 weight_initializer: Initializer = RandomUniform(),
+                 bias_initializer: Initializer = Constant(),
+                 regularizer_type: str = None,
+                 lam: float = 0.
+                 ):
+        weight_shape = (in_features + hidden_size, 4 * hidden_size)
+        super().__init__(weight_shape=weight_shape,
+                         weight_initializer=weight_initializer,
+                         bias_initializer=bias_initializer,
+                         regularizer_type=regularizer_type,
+                         lam=lam
+                         )
+        self.in_features = in_features
+        self.hidden_size = hidden_size
+        self.weight_initializer = weight_initializer
+        self.bias_initializer = bias_initializer
+        self.regularizer_type = regularizer_type
+        self.lam = lam
+
+        self.c_t = None
+        self.o = None
+        self.g = None
+        self.c = None
+        self.i = None
+        self.f = None
+        self.g_hat = None
+
+    def forward(self, x, h, c, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        self.input = np.hstack([x, h])
+        self.c = c
+        z = self.input.dot(self.vars["W"]) + self.vars["b"]
+        i_hat, f_hat, o_hat, self.g_hat = np.split(z, 4, axis=-1)
+        self.i = Sigmoid.forward(i_hat)
+        self.f = Sigmoid.forward(f_hat)
+        self.o = Sigmoid.forward(o_hat)
+        self.g = np.tanh(self.g_hat)
+        self.c_t = self.f * c + self.i * self.g
+        h_t = self.o * np.tanh(self.c_t)
+        return h_t, self.c_t
+
+    def backward(self, **delta):
+        dh_t = delta.get("h_t", delta["delta"])
+        dc_t = delta.get("c_t", np.zeros_like(dh_t))
+        do = dh_t * np.tanh(self.c_t)
+        dc_t += dh_t * self.o * (1 - np.tanh(self.c_t) ** 2)
+        di = dc_t * self.g
+        df = dc_t * self.c
+        dg = dc_t * self.i
+        dc = dc_t * self.f
+        dg_hat = dg * (1 - np.tanh(self.g_hat) ** 2)
+        di_hat = di * self.i * (1 - self.i)
+        df_hat = df * self.f * (1 - self.f)
+        do_hat = do * self.o * (1 - self.o)
+        dz = np.hstack([di_hat, df_hat, do_hat, dg_hat])
+
+        self.vars["dW"] = self.input.T.dot(dz) / dz.shape[0]
+        self.vars["db"] = np.sum(dz, axis=0, keepdims=True) / dz.shape[0]
+
+        dinput = dz.dot(self.vars["W"].T)
+        dx, dh = np.split(dinput, [self.in_features], axis=-1)
+
+        return dict(delta=dx, h_t=dh, c_t=dc)
+
+    def summary(self):
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        output_shape = (None, self.vars["b"].shape[1] // 4)
+        return name, output_shape, n_param
+
+    def __call__(self, x, h, c, eval=False):
+        return self.forward(x, h, c, eval)

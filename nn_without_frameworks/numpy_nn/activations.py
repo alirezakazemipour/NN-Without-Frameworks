@@ -10,7 +10,8 @@ class Activation:
     def __call__(self, x):
         return self.forward(x)
 
-    def forward(self, x):
+    @staticmethod
+    def forward(x):
         raise NotImplementedError
 
     def derivative(self, x):
@@ -18,7 +19,8 @@ class Activation:
 
 
 class Linear(Activation, ABC):
-    def forward(self, x):
+    @staticmethod
+    def forward(x):
         return x
 
     def derivative(self, x):
@@ -26,7 +28,8 @@ class Linear(Activation, ABC):
 
 
 class ReLU(Activation, ABC):
-    def forward(self, x):
+    @staticmethod
+    def forward(x):
         return np.maximum(0, x)
 
     def derivative(self, x):
@@ -34,7 +37,8 @@ class ReLU(Activation, ABC):
 
 
 class Tanh(Activation, ABC):
-    def forward(self, x):
+    @staticmethod
+    def forward(x):
         return np.tanh(x)
 
     def derivative(self, x):
@@ -43,7 +47,8 @@ class Tanh(Activation, ABC):
 
 class Sigmoid(Activation, ABC):
     # https://stackoverflow.com/a/23194336/12732481
-    def forward(self, x):
+    @staticmethod
+    def forward(x):
         """Numerically stable sigmoid function."""
         x = np.clip(x, -500, 500)
         return 1 / (1 + np.exp(-x))

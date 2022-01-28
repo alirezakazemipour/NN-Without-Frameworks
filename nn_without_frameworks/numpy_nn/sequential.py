@@ -23,9 +23,9 @@ class Sequential:
 
     def backward(self, loss):
         assert isinstance(loss, Loss)
-        delta = loss.delta
+        delta = dict(delta=loss.delta)
         for layer in self._layers[::-1]:
-            delta = layer.backward(delta)
+            delta = layer.backward(**delta)
 
     def summary(self):
         print("\nModel Summary:")
