@@ -1,4 +1,7 @@
 from collections import namedtuple
+
+import numpy as np
+
 from .initializers import *
 from .activations import *
 
@@ -170,7 +173,7 @@ class Dropout(Layer, ABC):
         Probability of keeping a neuron active.
         """
 
-        self.p = p
+        self.p = 1 - p
         self.mask = None
 
     def forward(self, x, eval=False):
@@ -253,7 +256,7 @@ class LSTMCell(ParamLayer, ABC):
         return ht, ct
 
     def backward(self, **delta):
-        dht = delta.get("dht", delta["delta"])
+        dht = delta.get("dht", 0) + delta["delta"]
         dct = delta.get("dct", np.zeros_like(dht))
         ct = self.buffer[self.t].ct
         do = dht * np.tanh(ct)
@@ -310,13 +313,14 @@ class LSTM(LSTMCell, ABC):
     def __init__(self, **kwargs):
         super(LSTM, self).__init__(**kwargs)
         self.seq_len = None
+        self.batch_size = None
 
     def forward(self, x, h, c, eval=False):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) == 3, "x should be in (batch_size, sequence_length, in_features) shape!"
         output = []
-        batch_size, self.seq_len, num_feats = x.shape
+        self.batch_size, self.seq_len, num_feats = x.shape
         for t in range(self.seq_len):
             self.t = t
             h, c = super(LSTM, self).forward(x[:, t, :], h, c, eval)
@@ -324,20 +328,34 @@ class LSTM(LSTMCell, ABC):
         return np.stack(output, axis=-2), h, c
 
     def backward(self, **delta):
+        if len(delta["delta"].shape) != 3:
+            tmp = np.zeros((self.batch_size, self.seq_len - 1, self.hidden_size))
+            da = np.expand_dims(delta["delta"], axis=1)
+            da = np.concatenate([tmp, da], axis=1)
+        else:
+            da = delta["delta"]
+
         dW, db = 0, 0
+        dx = np.zeros((self.batch_size, self.seq_len, self.in_features))
         for t in reversed(range(self.seq_len)):
             self.t = t
+            delta["delta"] = da[:, t, :]
             delta = super(LSTM, self).backward(**delta)
             delta["dht"] = self.buffer[self.t].dht_1
             delta["dct"] = self.buffer[self.t].dct_1
             dW += self.vars["dW"]
             db += self.vars["db"]
+            dx[:, t, :] = delta["delta"]
 
         self.vars["dW"] = dW
         self.vars["db"] = db
         delta.pop("dht")
         delta.pop("dct")
-        return delta
+        return dict(delta=dx)
 
     def __call__(self, x, h, c, eval=False):
         return self.forward(x, h, c, eval)
+
+    @property
+    def input_shape(self):
+        return self.seq_len, self.in_features

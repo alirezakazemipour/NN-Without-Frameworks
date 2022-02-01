@@ -1,5 +1,5 @@
 import numpy as np
-from .utils import binary_cross_entropy
+from .utils import binary_cross_entropy, check_shapes
 from abc import ABC
 
 
@@ -19,6 +19,7 @@ class LossFunc:
         self.target = target
         self.eps = 1e-6
 
+    @check_shapes
     def apply(self, p, t):
         raise NotImplementedError
 
@@ -34,9 +35,10 @@ class MSE(LossFunc, ABC):
     def __init__(self):
         super(MSE, self).__init__()
 
+    @check_shapes
     def apply(self, p, t):
         super(MSE, self).__init__(p, t)
-        return Loss(np.mean((p - t) ** 2) / 2, self.delta)
+        return Loss(np.mean((p - t) ** 2, axis=0) / 2, self.delta)
 
     @property
     def delta(self):
@@ -48,12 +50,13 @@ class CrossEntropy(LossFunc, ABC):
     def __init__(self):
         super(CrossEntropy, self).__init__()
 
+    @check_shapes
     def apply(self, p, t):
         super(CrossEntropy, self).__init__(p, t)
         probs = self.soft_max(p)
         loss = -np.log(probs[range(p.shape[0]), np.array(t).squeeze(-1)])
 
-        return Loss(np.mean(loss), self.delta)
+        return Loss(np.mean(loss, axis=0), self.delta)
 
     @property
     def delta(self):
@@ -75,6 +78,7 @@ class BinaryCrossEntropy(LossFunc, ABC):
     def __init__(self):
         super(BinaryCrossEntropy, self).__init__()
 
+    @check_shapes
     def apply(self, p, t):
         if not isinstance(t, np.ndarray):
             t = np.asarray(t)
@@ -83,7 +87,7 @@ class BinaryCrossEntropy(LossFunc, ABC):
 
         super(BinaryCrossEntropy, self).__init__(p, t)
         loss = -binary_cross_entropy(p, t)
-        return Loss(np.mean(loss), self.delta)
+        return Loss(np.mean(loss, axis=0), self.delta)
 
     @property
     def delta(self):
@@ -96,6 +100,7 @@ class BinaryFocal(LossFunc, ABC):
         self.alpha = alpha
         super(BinaryFocal, self).__init__()
 
+    @check_shapes
     def apply(self, p, t):
         if not isinstance(t, np.ndarray):
             t = np.asarray(t)
@@ -104,7 +109,7 @@ class BinaryFocal(LossFunc, ABC):
 
         super(BinaryFocal, self).__init__(p, t)
         loss = -self.alpha * (1 - p + self.eps) ** self.gamma * binary_cross_entropy(p, t)
-        return Loss(np.mean(loss), self.delta)
+        return Loss(np.mean(loss, axis=0), self.delta)
 
     @property
     def delta(self):
