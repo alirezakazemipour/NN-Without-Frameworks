@@ -1,9 +1,8 @@
 from collections import namedtuple
-
-import numpy as np
-
 from .initializers import *
 from .activations import *
+from .utils import *
+from typing import Optional
 
 
 # TODO:
@@ -359,3 +358,127 @@ class LSTM(LSTMCell, ABC):
     @property
     def input_shape(self):
         return self.seq_len, self.in_features
+
+
+class Conv2D(ParamLayer, ABC):
+    def __init__(self, in_features: int,
+                 out_features: int,
+                 kernel_size: int,
+                 stride: int = 1,
+                 padding: int = 0,
+                 activation: Activation = Linear(),
+                 weight_initializer: Initializer = RandomUniform(),
+                 bias_initializer: Initializer = Constant(),
+                 regularizer_type: str = None,
+                 lam: float = 0.
+                 ):
+        self.in_features = in_features
+        self.out_features = out_features
+        self.act = activation
+        self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
+        self.stride = stride
+        self.padding = (padding, padding) if isinstance(padding, int) else padding
+        self.weight_initializer = weight_initializer
+        self.bias_initializer = bias_initializer
+        self.regularizer_type = regularizer_type
+        self.lam = lam
+        self.pad_width = (0, 0), (self.padding[0], self.padding[0]), (self.padding[1], self.padding[1]), (0, 0)
+        self.in_rows = None
+        self.in_cols = None
+        self.batch_size = None
+        self.i, self.j, self.k = None, None, None
+
+        super().__init__(weight_shape=(self.kernel_size[0] * self.kernel_size[1] * in_features, out_features),
+                         weight_initializer=weight_initializer,
+                         bias_initializer=bias_initializer,
+                         regularizer_type=regularizer_type,
+                         lam=lam
+                         )
+
+    def forward(self, x, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        assert len(x.shape) == 4, f"Invalid input shape in {self.__class__.__name__}." \
+                                  f" Valid shape is: (batch_size, n_rows, n_cols, in_features)"
+
+        self.in_rows = x.shape[1]
+        self.in_cols = x.shape[2]
+        self.batch_size = x.shape[0]
+        x_pad = np.pad(x,
+                       pad_width=self.pad_width,
+                       mode="constant",
+                       constant_values=0,
+                       )
+        i, j, k = im2col_indices(x, self.kernel_size, self.stride, self.padding)
+        x_col = x_pad[:, i, j, k]
+        self.i, self.j, self.k = i, j, k
+        self.input = x_col
+        z = x_col.dot(self.vars["W"]) + self.vars["b"]
+        self.z = z
+        a = self.act(z)
+        out_rows = conv_shape(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
+        out_cols = conv_shape(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
+        return a.reshape((self.batch_size, out_rows, out_cols, self.out_features))
+
+    def backward(self, **delta):
+        #  https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L3048
+        delta = delta["delta"].reshape((-1, self.out_features))
+        z = self.z.reshape(delta.shape)
+        dz = delta * self.act.derivative(z)
+        input = self.input.reshape((dz.shape[0], -1))
+        self.vars["dW"] = input.T.dot(dz) / dz.shape[0]
+        self.vars["db"] = np.sum(dz, axis=0, keepdims=True) / dz.shape[0]
+
+        if self.regularizer_type == "l2":
+            self.vars["dW"] += self.lam * self.vars["W"]
+        elif self.regularizer_type == "l1":
+            self.vars["dW"] += self.lam
+
+        delta = dz.dot(self.vars["W"].T)
+        delta = col2im(delta, self.i, self.j, self.k,
+                       self.batch_size, self.in_rows,
+                       self.in_cols, self.in_features,
+                       self.kernel_size, self.padding
+                       )
+
+        return dict(delta=delta)
+
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
+
+
+class Conv1D(Conv2D, ABC):
+    def __init__(self, seq_len: Optional = None, **kwargs):
+        kwargs["kernel_size"] = 1, kwargs["kernel_size"]
+        kwargs["padding"] = 0, kwargs["padding"]
+        self.seq_len = seq_len
+        super().__init__(**kwargs)
+
+    def forward(self, x, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        assert len(x.shape) == 3, f"Invalid input shape in {self.__class__.__name__}." \
+                                  f" Valid shape is: (batch_size, seq_len, in_features)"
+        x = np.expand_dims(x, axis=1)
+        a = super().forward(x)
+        a = np.squeeze(a, axis=1)
+        return a
+
+    def backward(self, **delta):
+        delta = super().backward(**delta)
+        delta["delta"] = np.squeeze(delta["delta"], axis=1)
+        return delta
+
+    def summary(self):
+        if self.seq_len is None:
+            raise AttributeError(f"`seq_len` should be specified prior to invoking summary! in {self.__class__.__name__}")
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        output_shape = (None, self.seq_len, self.vars["b"].shape[1])
+        return name, output_shape, n_param
+
+    @property
+    def input_shape(self):
+        return self.in_cols if self.in_cols is not None else self.seq_len, self.in_features
