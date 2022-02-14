@@ -7,7 +7,7 @@
 - [x] Xavier and He initializers
 - [x] Batchnorm1d
 - [x] Regularization
-- [ ] CNN support
+- [x] CNN support
 - [ ] Dropout
 - [ ] DQN
 - [x] Classification
@@ -20,4 +20,7 @@
 - [ ] Add strassen matrix multiplication
 - [ ] Add GPU support (Numba)
 - [ ] Docstrings
-- [ ] LSTM
+- [x] LSTM
+- [ ] Pooling
+- [ ] GlobalPooling
+- [ ] Layer Normalization

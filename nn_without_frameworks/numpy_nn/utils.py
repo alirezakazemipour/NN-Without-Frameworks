@@ -2,12 +2,8 @@ import numpy as np
 import inspect
 
 
-def binary_cross_entropy(p, t):
-    return t * np.log(p + 1e-6) + (1 - t) * np.log(1 - p + 1e-6)
-
-
 def check_shapes(func):
-    if inspect.signature(func).parameters:
+    if "self" in inspect.signature(func).parameters:
         def inner_func(self, x, y):
             assert x.shape == y.shape, \
                 f"Inputs to the function are in different shapes: {x.shape} and {y.shape} at {func.__qualname__}!"
@@ -20,6 +16,44 @@ def check_shapes(func):
             return func(x, y)
 
     return inner_func
+
+
+@check_shapes
+def binary_cross_entropy(p, t):
+    r"""Calculate Binary Cross Entropy.
+
+    When Binary Cross Entropy quantity is needed, this function can be invoked as a wrapper of calculating BCE.
+
+    Parameters
+    ----------
+    p : array_like
+        Prediction probabilities.
+    t : array_like
+        Target labels.
+
+    Returns
+    -------
+    numpy.ndarray
+        BCE values.
+
+    Raises
+    ------
+    AssertionError
+        If `p` and `t` shapes are not the same.
+
+    Notes
+    -----
+    Binary Cross Entropy is a special case of cross entropy quantity that is concerned for only 2 categories.
+    .. math:: BCE(p, t) = t\log{(p)} + (1 - t)\log{(1 - p)}
+
+    Examples
+    --------
+    >>> t = np.array([[1, 0, 1, 1]])
+    >>> p = np.array([[0.85, 0.2, 0.5, 0.95]])
+    >>> binary_cross_entropy(p, t)
+    [[-0.16251775 -0.2231423  -0.69314518 -0.05129224]]
+    """
+    return t * np.log(p + 1e-6) + (1 - t) * np.log(1 - p + 1e-6)
 
 
 def im2col_indices(x, kernel_size, stride, padding):
@@ -71,4 +105,6 @@ def conv_shape(input_size, kernel_size, stride=1, padding=0):
 
 
 if __name__ == "__main__":
-    print(type(binary_cross_entropy))
+    t = np.array([[1, 0, 1, 1]])
+    p = np.array([[0.85, 0.2, 0.5, 0.95]])
+    print(binary_cross_entropy(p, t))
