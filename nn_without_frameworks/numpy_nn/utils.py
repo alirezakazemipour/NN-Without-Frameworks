@@ -1,15 +1,77 @@
 import numpy as np
 import inspect
+from typing import Callable
 
 
 def check_shapes(func):
+    """Decorate 2-input-argument functions that their arguments must have the same numpy shape.
+
+    It's very common in calculations involved in Neural Networks' implementation and learning loops
+    to compute quantities that are based on 2 separate inputs and those inputs must possess the same shape, if one
+    is hoping to obtain correct outputs.
+
+    This function acts as a decorator and guarantees that any pair of inputs to functions decorated by it,
+    does not violate the presumption of having equal shapes.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to be decorated
+
+    Returns
+    -------
+    Callable
+        The decorated function.
+
+    Notes
+    -----
+    Class methods, in addition to regular functions, are also supported. In other words,
+    you can decorate class methods that one of the arguments is `self` and, this decorator
+    will ignore `self` and performs the dimensionality checking on the remianing two arguments.
+
+    Examples
+    --------
+    **Regular functions**
+
+    >>> @check_shapes
+    >>> def binary_cross_entropy(p, t):
+    ...     eps = 1e-6
+    ...     return t * np.log(p + eps) + (1 - t) * np.log(1 - p + eps)
+    >>> t = np.array([[1, 0, 1]])
+    >>> p = np.array([[0.85, 0.2, 0.5, 0.95]])
+    >>> binary_cross_entropy(p, t)
+    AssertionError: Inputs to the function are in different shapes: (1, 4) and (1, 3) at binary_cross_entropy!
+
+    **Class methods**
+
+    >>> class DummyClass:
+    ...    @check_shapes
+    ...    def binary_cross_entropy(self, p, t):
+    ...        eps = 1e-6
+    ...        return t * np.log(p + eps) + (1 - t) * np.log(1 - p + eps)
+    >>> dummy_var = DummyClass()
+    >>> t = np.array([[1, 0, 1]])
+    >>> p = np.array([[0.85, 0.2, 0.5, 0.95]])
+    >>> dummy_var.binary_cross_entropy(p, t)
+    AssertionError: Inputs to the function are in different shapes: (1, 4) and (1, 3) at DummyClass.binary_cross_entropy!
+    """
     if "self" in inspect.signature(func).parameters:
         def inner_func(self, x, y):
+            if not isinstance(x, np.ndarray):
+                x = np.array(x)
+            if not isinstance(y, np.ndarray):
+                y = np.array(y)
+
             assert x.shape == y.shape, \
                 f"Inputs to the function are in different shapes: {x.shape} and {y.shape} at {func.__qualname__}!"
             return func(self, x, y)
     else:
         def inner_func(x, y):
+            if not isinstance(x, np.ndarray):
+                x = np.array(x)
+            if not isinstance(y, np.ndarray):
+                y = np.array(y)
+
             assert x.shape == y.shape, \
                 f"Inputs to the function are in different shapes: {x.shape} and {y.shape} at {func.__qualname__}!"
 
@@ -43,8 +105,11 @@ def binary_cross_entropy(p, t):
 
     Notes
     -----
-    Binary Cross Entropy is a special case of cross entropy quantity that is concerned for only 2 categories.
-    .. math:: BCE(p, t) = t\log{(p)} + (1 - t)\log{(1 - p)}
+    Binary Cross Entropy is a special case of cross entropy quantity that is concerned for only 2 categories:
+
+    .. math:: BCE(p, t) = t * \log{(p)} + (1 - t) * \log{(1 - p)}
+
+    `eps=1e-6` is used to stablized the logrithm function when it encounters 0 as its input.
 
     Examples
     --------
@@ -53,7 +118,8 @@ def binary_cross_entropy(p, t):
     >>> binary_cross_entropy(p, t)
     [[-0.16251775 -0.2231423  -0.69314518 -0.05129224]]
     """
-    return t * np.log(p + 1e-6) + (1 - t) * np.log(1 - p + 1e-6)
+    eps = 1e-6
+    return t * np.log(p + eps) + (1 - t) * np.log(1 - p + eps)
 
 
 def im2col_indices(x, kernel_size, stride, padding):
@@ -105,6 +171,16 @@ def conv_shape(input_size, kernel_size, stride=1, padding=0):
 
 
 if __name__ == "__main__":
-    t = np.array([[1, 0, 1, 1]])
+    class DummyClass:
+        @check_shapes
+        def binary_cross_entropy(self, p, t):
+            ...
+            eps = 1e-6
+            ...
+            return t * np.log(p + eps) + (1 - t) * np.log(1 - p + eps)
+
+
+    dummy_var = DummyClass()
+    t = np.array([[1, 0, 1]])
     p = np.array([[0.85, 0.2, 0.5, 0.95]])
-    print(binary_cross_entropy(p, t))
+    dummy_var.binary_cross_entropy(p, t)
