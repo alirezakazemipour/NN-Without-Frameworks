@@ -123,11 +123,75 @@ def binary_cross_entropy(p, t):
 
 
 def im2col_indices(x, kernel_size, stride, padding):
-    """
-    ``References:
-    - [numpy-ml](https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/utils/utils.py#L486)
-    - [Why GEMM is at the heart of deep learning](https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/)
-    - [Demystifying the math and implementation of Convolutions: Part III](https://praisethemoon.org/demystifying-the-math-and-implementation-of-convolutions-part-iii/)
+    """Find image-to-column transformation indices in the 3D input array.
+
+    To perform tensor operations (like Convolution) on 3D inputs (like images) in Deep Learning, naive approaches
+    are extremely inefficient (i.e. convolution operation on an image is at least in O(n^3)).
+
+    One idea that reduces the time complexity (but is quite memory-intensive) is that to transform 3D inputs to 2D
+    matrices and treat the operations involved like regular matrix-dot-products that we do in Fully-Connected layers and
+    , consequently lowering the time complexity.
+
+    Image-to-Column method computes coordinates of patches that are going to be met by the convolution operation
+    across all input channels and returns those coordinates thus, one can transform the 3D input array to a resulting
+    2D matrix consisting only the patches from the original array that are going to be met by the convolution filter.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Input 3D array in shape (N, rows, cols, channels).
+
+    kernel_size : tuple of int or list of int
+        Kernel size of the filter.
+
+    stride : int
+        Stride in both x and y directions.
+
+    padding : tuple of int or list of int
+        Amount of padding applied to rows and columns
+
+    Returns
+    -------
+    i : numpy.ndarray
+        Indices over row axis.
+
+    j : numpy.ndarray
+        Indices over column axis.
+
+    k : numpy.ndarray
+        Indices over depth axis.
+
+    References
+    ----------
+    .. [1] CS231n (2016), Lecture 11, "CNNs in practice,"
+       http://cs231n.stanford.edu/slides/2016/winter1516_lecture11.pdf
+
+    .. [2] Warden (2015). "Why GEMM is at the heart of deep learning,"
+       https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/
+
+    .. [3] Chouri (2019). "Demystifying the math and implementation of Convolutions: Part III,"
+       https://praisethemoon.org/demystifying-the-math-and-implementation-of-convolutions-part-iii/
+
+    .. [4] numpy-ml
+    https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/utils/utils.py#L447
+
+    .. [5] Kazemipour (2022). "img2col_explained"
+    https://gist.github.com/alirezakazemipour/745041bbcdd294ad5d2049cc975f64aa
+
+    Examples
+    --------
+    >>> x = np.random.randint(0, 3, size=(1, 5, 5, 1))
+    >>> i, j, k = im2col_indices(x, kernel_size=(1, 1), stride=2, padding=(0, 0))
+    >>> x[:, i, j, k]
+    [[[0]
+  [2]
+  [2]
+  [0]
+  [1]
+  [1]
+  [2]
+  [0]
+  [0]]]
     """
     fr, fc = kernel_size
     pr, pc = padding
@@ -171,16 +235,6 @@ def conv_shape(input_size, kernel_size, stride=1, padding=0):
 
 
 if __name__ == "__main__":
-    class DummyClass:
-        @check_shapes
-        def binary_cross_entropy(self, p, t):
-            ...
-            eps = 1e-6
-            ...
-            return t * np.log(p + eps) + (1 - t) * np.log(1 - p + eps)
-
-
-    dummy_var = DummyClass()
-    t = np.array([[1, 0, 1]])
-    p = np.array([[0.85, 0.2, 0.5, 0.95]])
-    dummy_var.binary_cross_entropy(p, t)
+    x = np.random.randint(0, 3, size=(1, 5, 5, 1))
+    i, j, k = im2col_indices(x, kernel_size=(1, 1), stride=2, padding=(0, 0))
+    print(x[:, i, j, k])
