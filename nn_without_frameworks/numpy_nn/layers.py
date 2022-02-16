@@ -1,4 +1,7 @@
 from collections import namedtuple
+
+import numpy as np
+
 from .initializers import *
 from .activations import *
 from .utils import *
@@ -137,7 +140,7 @@ class BatchNorm1d(ParamLayer, ABC):
         else:
             self.mu = self.mu_hat
             self.std = self.std_hat
-        x_hat = x - self.mu / np.sqrt(self.std ** 2 + self.eps)
+        x_hat = (x - self.mu) / np.sqrt(self.std ** 2 + self.eps)
         self.x_hat = x_hat
         y = self.vars["W"] * x_hat + self.vars["b"]
         return y
@@ -159,6 +162,7 @@ class BatchNorm1d(ParamLayer, ABC):
         return self.forward(x, eval)
 
 
+# region Dropout
 class Dropout(Layer, ABC):
     """
     - References:
@@ -197,6 +201,9 @@ class Dropout(Layer, ABC):
         return self.forward(x, eval)
 
 
+# endregion
+
+# region LSTMCell
 class LSTMCell(ParamLayer, ABC):
     """
     - References:
@@ -209,7 +216,7 @@ class LSTMCell(ParamLayer, ABC):
                  hidden_size: int,
                  weight_initializer: Initializer = RandomUniform(),
                  bias_initializer: Initializer = Constant(),
-                 regularizer_type: str = None,
+                 regularizer_type: str = None,  # noqa
                  lam: float = 0.
                  ):
         weight_shape = (in_features + hidden_size, 4 * hidden_size)
@@ -302,6 +309,9 @@ class LSTMCell(ParamLayer, ABC):
         return self.forward(x, h, c, eval)
 
 
+# endregion
+
+# region LSTM
 class LSTM(LSTMCell, ABC):
     """
     - References:
@@ -334,7 +344,7 @@ class LSTM(LSTMCell, ABC):
         else:
             da = delta["delta"]
 
-        dW, db = 0, 0
+        dW, db = np.array(0), np.array(0)
         dx = np.zeros((self.batch_size, self.seq_len, self.in_features))
         for t in reversed(range(self.seq_len)):
             self.t = t
@@ -360,6 +370,9 @@ class LSTM(LSTMCell, ABC):
         return self.seq_len, self.in_features
 
 
+# endregion
+
+# region Conv2D
 class Conv2D(ParamLayer, ABC):
     def __init__(self, in_features: int,
                  out_features: int,
@@ -448,6 +461,9 @@ class Conv2D(ParamLayer, ABC):
         return self.forward(x, eval)
 
 
+# endregion
+
+# region Conv1D
 class Conv1D(Conv2D, ABC):
     def __init__(self, seq_len: Optional = None, **kwargs):
         kwargs["kernel_size"] = 1, kwargs["kernel_size"]
@@ -473,7 +489,8 @@ class Conv1D(Conv2D, ABC):
 
     def summary(self):
         if self.seq_len is None:
-            raise AttributeError(f"`seq_len` should be specified prior to invoking summary! in {self.__class__.__name__}")
+            raise AttributeError(
+                f"`seq_len` should be specified prior to invoking summary! in {self.__class__.__name__}")
         name = self.__class__.__name__
         n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
         output_shape = (None, self.seq_len, self.vars["b"].shape[1])
@@ -482,3 +499,50 @@ class Conv1D(Conv2D, ABC):
     @property
     def input_shape(self):
         return self.in_cols if self.in_cols is not None else self.seq_len, self.in_features
+
+
+# endregion
+
+class LayerNorm(ParamLayer, ABC):
+    # https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L1634
+    def __init__(self, in_features: int):
+        super().__init__(weight_shape=(1, in_features),
+                         weight_initializer=Constant(1.),
+                         bias_initializer=Constant(0.)
+                         )
+        self.in_features = in_features
+        self.x_hat = None
+        self.eps = 1e-5
+        self.beta = 0.1
+        self.mu = 0
+        self.std = 0
+
+    def forward(self, x, eval=False):  # noqa
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        feat_dims = tuple(range(x.ndim))[1:]
+        self.mu = np.mean(x, axis=feat_dims, keepdims=True)
+        self.std = np.std(x, axis=feat_dims, keepdims=True)
+
+        x_hat = (x - self.mu) / np.sqrt(self.std ** 2 + self.eps)
+        self.x_hat = x_hat
+        y = self.vars["W"] * x_hat + self.vars["b"]
+        return y
+
+    def backward(self, **delta):
+        delta = delta["delta"]
+        dz = delta
+        dx_hat = dz * self.vars["W"]
+        m = dz.shape[0]
+        self.vars["dW"] = np.sum(self.x_hat * dz, axis=0) / m
+        self.vars["db"] = np.sum(dz, axis=0) / m
+
+        n_dims = np.prod(dz.shape[1:])
+        feat_dims = tuple(range(dz.ndim))[1:]
+        delta = (n_dims * dx_hat - np.sum(dx_hat, axis=feat_dims, keepdims=True) - self.x_hat * np.sum(
+            dx_hat * self.x_hat, axis=feat_dims, keepdims=True)) / (n_dims * np.sqrt(self.std ** 2 + self.eps))
+        return dict(delta=delta)
+
+    def __call__(self, x, eval=False):  # noqa
+        return self.forward(x, eval)

@@ -83,31 +83,17 @@ def train_classification(nn):
             super().__init__()
             self.input_dim = input_dim
             self.out_dim = out_dim
-            # self.hidden = nn.layers.Dense(in_features=self.input_dim,
-            #                               out_features=100,
-            #                               activation=nn.acts.ReLU(),
-            #                               weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-            #                               bias_initializer=nn.inits.Constant(0.),
-            #                               regularizer_type="l2",
-            #                               lam=1e-3
-            #                               )
-            # self.dropout = nn.layers.Dropout(0.5)
-            # self.bn = nn.layers.BatchNorm1d(100)
-            self.lstm1 = nn.layers.LSTM(in_features=self.input_dim - 1,
-                                        hidden_size=100,
-                                        weight_initializer=nn.inits.XavierUniform(),
-                                        bias_initializer=nn.inits.Constant(0.),
-                                        regularizer_type="l2",
-                                        lam=0.
-                                        )
-            self.lstm2 = nn.layers.LSTM(in_features=100,
-                                        hidden_size=40,
-                                        weight_initializer=nn.inits.XavierUniform(),
-                                        bias_initializer=nn.inits.Constant(0.),
-                                        regularizer_type="l2",
-                                        lam=0.
-                                        )
-            self.output = nn.layers.Dense(in_features=40,
+            self.hidden = nn.layers.Dense(in_features=self.input_dim,
+                                          out_features=100,
+                                          activation=nn.acts.ReLU(),
+                                          weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+                                          bias_initializer=nn.inits.Constant(0.),
+                                          regularizer_type="l2",
+                                          lam=1e-3
+                                          )
+            self.dropout = nn.layers.Dropout(0.5)
+            # self.bn = nn.layers.LayerNorm(100)
+            self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
                                           activation=nn.acts.Sigmoid(),
                                           weight_initializer=nn.inits.XavierUniform(),
@@ -117,16 +103,11 @@ def train_classification(nn):
                                           )
 
         def forward(self, x, eval=False):
-            x, h1, c1, h2, c2 = x
-            # x = self.hidden(x)
-            # x = self.dropout(x)
+            x = self.hidden(x)
+            x = self.dropout(x)
             # x = self.bn(x, eval)
-            x = np.array(x)
-            x = x.reshape((-1, 2, 1))
-            x, h1, c1 = self.lstm1(x, h1, c1)
-            *_, h2, c2 = self.lstm2(x, h2, c2)
-            x = self.output(h2)
-            return x, h1, c1, h2, c2
+            x = self.output(x)
+            return x
 
     np.random.seed(123)
     random.seed(123)
@@ -150,39 +131,18 @@ def train_classification(nn):
             t[idx][0] = j
 
     my_net = MyNet(num_features, 1)
-    # my_net = nn.Sequential(nn.layers.Dense(in_features=num_features,
-    #                                        out_features=100,
-    #                                        activation=nn.acts.ReLU(),
-    #                                        weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-    #                                        bias_initializer=nn.inits.Constant(0.),
-    #                                        # regularizer_type="l2",
-    #                                        # lam=1e-3
-    #                                        ),
-    #                        # nn.layers.BatchNorm1d(100),
-    #                        nn.layers.Dropout(p=0.5),
-    #                        nn.layers.Dense(in_features=100,
-    #                                        out_features=1,
-    #                                        activation=nn.acts.Sigmoid(),
-    #                                        weight_initializer=nn.inits.XavierUniform(),
-    #                                        bias_initializer=nn.inits.Constant(0.),
-    #                                        # regularizer_type="l2",
-    #                                        # lam=1e-3
-    #                                        )
-    #                        )
     my_net.summary()
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
     smoothed_loss = 0
-    h1, c1 = np.zeros((batch_size, 100)), np.zeros((batch_size, 100))
-    h2, c2 = np.zeros((batch_size, 40)), np.zeros((batch_size, 40))
     for step in range(epoch):
         batch, target = [[None] for _ in range(batch_size)], [[None] for _ in range(batch_size)]
         for i in range(batch_size):
             idx = random.randint(0, len(x) - 1)
             batch[i] = x[idx]
             target[i] = t[idx]
-        y, h1, c1, h2, c2 = my_net((batch, h1, c1, h2, c2), False)
+        y = my_net(batch, False)
         y = y.squeeze(-1)
         target = np.asarray(target).squeeze(-1)
         loss = ce_loss(y, target)
@@ -209,9 +169,7 @@ def train_classification(nn):
     nn.save(my_net.parameters, "weights.pkl")
     weights = nn.load("weights.pkl")
     my_net.set_weights(weights)
-    h1, c1 = np.zeros((200, 100)), np.zeros((200, 100))
-    h2, c2 = np.zeros((200, 40)), np.zeros((200, 40))
-    y, *_ = my_net.forward((x, h1, c1, h2, c2), True)
+    y = my_net.forward((x), True)
     predicted_class = np.where(y > 0.5, 1, 0)  # np.argmax(y, axis=1)
     print('training accuracy: %.2f' % (np.mean(predicted_class == np.array(t))))
     plt.plot(np.arange(len(loss_history)), loss_history)

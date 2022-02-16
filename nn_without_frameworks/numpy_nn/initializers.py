@@ -28,7 +28,7 @@ class RandomUniform(Initializer, ABC):
 
 class XavierUniform(Initializer, ABC):
     def initialize(self, shape):
-        fan_in, fan_out = shape  # TODO: only works for Dense layer!
+        fan_in, fan_out = shape
         std = math.sqrt(2 / (fan_in + fan_out))
         a = std * math.sqrt(3)
         return np.random.uniform(-a, a, shape)
@@ -42,7 +42,7 @@ class HeNormal(Initializer, ABC):
         self.mode = mode
 
     def initialize(self, shape):
-        fan_in, fan_out = shape  # TODO: only works for Dense layer!
+        fan_in, fan_out = shape
         fan = fan_in if self.mode == "fan_in" else fan_out
         if isinstance(self.non_linearity, ReLU):
             gain = math.sqrt(2)
