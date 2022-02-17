@@ -38,10 +38,7 @@ class Module:
         name, output_shape, n_param = "Input", (None, self._layers[0].input_shape), 0
         data.append((name, output_shape, n_param))
         for i, layer in enumerate(self._layers):
-            if isinstance(layer, ParamLayer):
-                name, output_shape, n_param = layer.summary()
-            else:
-                name, n_param, output_shape = *layer.summary(), output_shape
+            name, output_shape, n_param = layer.summary()
             name += f"[{i}]"
             data.append((name, output_shape, n_param))
 

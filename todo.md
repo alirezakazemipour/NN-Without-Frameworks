@@ -24,3 +24,5 @@
 - [ ] Pooling
 - [ ] GlobalPooling
 - [ ] Layer Normalization
+- [ ] Global Pooling
+- [ ] Consistent tf like _summary_ function

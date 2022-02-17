@@ -1,7 +1,4 @@
 from collections import namedtuple
-
-import numpy as np
-
 from .initializers import *
 from .activations import *
 from .utils import *
@@ -16,6 +13,7 @@ def supported_layers():
     return [x.__name__ for x in ParamLayer.__subclasses__()]
 
 
+# region Layer
 class Layer:
     def forward(self, **kwargs):
         raise NotImplementedError
@@ -27,6 +25,9 @@ class Layer:
         return self.forward(**kwargs)
 
 
+# endregion
+
+# region ParamLayer
 class ParamLayer(Layer, ABC):
     def __init__(self,
                  weight_shape,
@@ -43,7 +44,7 @@ class ParamLayer(Layer, ABC):
         self.z = None
         self.input = None
 
-        self.regularizer_type = regularizer_type
+        self.regularizer_type = regularizer_type  # noqa
         self.lam = lam
 
     def summary(self):
@@ -57,6 +58,9 @@ class ParamLayer(Layer, ABC):
         return self.vars["W"].shape[0]
 
 
+# endregion
+
+# region Dense
 class Dense(ParamLayer, ABC):
     def __init__(self, in_features: int,
                  out_features: int,
@@ -112,6 +116,9 @@ class Dense(ParamLayer, ABC):
         return self.forward(x, eval)
 
 
+# endregion
+
+# region BatchNorm1d
 class BatchNorm1d(ParamLayer, ABC):
     #  https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html
     def __init__(self, in_features: int):
@@ -162,6 +169,8 @@ class BatchNorm1d(ParamLayer, ABC):
         return self.forward(x, eval)
 
 
+# endregion
+
 # region Dropout
 class Dropout(Layer, ABC):
     """
@@ -194,8 +203,7 @@ class Dropout(Layer, ABC):
         return dict(delta=delta * self.mask)
 
     def summary(self):
-        name = self.__class__.__name__
-        return name, 0
+        raise NotImplementedError
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -372,8 +380,8 @@ class LSTM(LSTMCell, ABC):
 
 # endregion
 
-# region Conv2D
-class Conv2D(ParamLayer, ABC):
+# region Conv2d
+class Conv2d(ParamLayer, ABC):
     def __init__(self, in_features: int,
                  out_features: int,
                  kernel_size: int,
@@ -454,7 +462,6 @@ class Conv2D(ParamLayer, ABC):
                        self.in_cols, self.in_features,
                        self.kernel_size, self.padding
                        )
-
         return dict(delta=delta)
 
     def __call__(self, x, eval=False):
@@ -463,8 +470,8 @@ class Conv2D(ParamLayer, ABC):
 
 # endregion
 
-# region Conv1D
-class Conv1D(Conv2D, ABC):
+# region Conv1d
+class Conv1d(Conv2d, ABC):
     def __init__(self, seq_len: Optional = None, **kwargs):
         kwargs["kernel_size"] = 1, kwargs["kernel_size"]
         kwargs["padding"] = 0, kwargs["padding"]
@@ -503,6 +510,7 @@ class Conv1D(Conv2D, ABC):
 
 # endregion
 
+# region LayerNorm
 class LayerNorm(ParamLayer, ABC):
     # https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L1634
     def __init__(self, in_features: int):
@@ -546,3 +554,135 @@ class LayerNorm(ParamLayer, ABC):
 
     def __call__(self, x, eval=False):  # noqa
         return self.forward(x, eval)
+
+
+# endregion
+
+# region Pool2d
+class Pool2d(Layer, ABC):
+    # https://github.com/madalinabuzau/cs231n-convolutional-neural-networks-solutions/blob/master/2017%20Spring%20Assignments/assignment2/cs231n/fast_layers.py
+    # https://pytorch.org/docs/stable/generated/torch.nn.MaxPool2d.html
+    # https://pytorch.org/docs/stable/generated/torch.nn.AvgPool2d.html
+    def __init__(self,
+                 mode: str,
+                 kernel_size: int,
+                 stride: int = 1,
+                 padding: int = 0,
+                 ):
+        self.mode = mode
+        self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
+        self.stride = stride
+        self.padding = (padding, padding) if isinstance(padding, int) else padding
+        self.pad_width = (0, 0), (self.padding[0], self.padding[0]), (self.padding[1], self.padding[1]), (0, 0)
+        self.in_rows = None
+        self.in_cols = None
+        self.in_channels = None
+        self.batch_size = None
+        self.i, self.j, self.k = None, None, None
+        self.input = None
+        self.idx = None
+
+    def forward(self, x, eval=False):  # noqa
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        assert len(x.shape) == 4, f"Invalid input shape in {self.__class__.__name__}." \
+                                  f" Valid shape is: (batch_size, n_rows, n_cols, in_features)"
+
+        self.batch_size = x.shape[0]
+        self.in_rows = x.shape[1]
+        self.in_cols = x.shape[2]
+        self.in_channels = x.shape[3]
+
+        x_single_channel = x.reshape((self.batch_size * self.in_channels, self.in_rows, self.in_cols, 1))
+        i, j, k = im2col_indices(x_single_channel, self.kernel_size, self.stride, self.padding)
+        if self.mode == "max":
+            x_pad = np.pad(x_single_channel,
+                           pad_width=self.pad_width,
+                           mode="constant",
+                           constant_values=-np.inf,
+                           )
+        elif self.mode == "avg":
+            x_pad = np.pad(x_single_channel,
+                           pad_width=self.pad_width,
+                           mode="constant",
+                           constant_values=0,
+                           )
+        else:
+            raise ValueError(f"Invalid mode of pooling: {self.mode}. Available modes ('max', 'avg').")
+
+        x_col = x_pad[:, i, j, k]
+        self.i, self.j, self.k = i, j, k
+        self.input = x_col
+        if self.mode == "max":
+            self.idx = np.argmax(x_col, axis=-1)
+            cols_idx = np.tile(np.arange(x_col.shape[1]), (self.batch_size * self.in_channels, 1))
+            batch_idx = np.arange(self.batch_size * self.in_channels)[:, np.newaxis]
+            out = x_col[batch_idx, cols_idx, self.idx]
+        elif self.mode == "avg":
+            out = np.mean(x_col, axis=-1)
+
+        out_rows = conv_shape(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
+        out_cols = conv_shape(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
+        return out.reshape((self.batch_size, out_rows, out_cols, self.in_channels))  # noqa
+
+    def backward(self, **delta):
+        dout = delta["delta"].reshape(self.batch_size * self.in_channels, -1)  # noqa
+        delta = np.zeros_like(self.input)
+        if self.mode == "max":
+            cols_idx = np.tile(np.arange(self.input.shape[1]), (self.batch_size * self.in_channels, 1))
+            batch_idx = np.arange(self.batch_size * self.in_channels)[:, np.newaxis]
+            delta[batch_idx, cols_idx, self.idx] = dout
+        elif self.mode == "avg":
+            delta = np.tile(dout[..., np.newaxis], (1, 1, self.input.shape[-1])) / self.input.shape[-1]
+
+        delta = col2im(delta,
+                       self.i,
+                       self.j,
+                       self.k,
+                       self.batch_size * self.in_channels,
+                       self.in_rows,
+                       self.in_cols,
+                       1,
+                       self.kernel_size,
+                       self.padding
+                       )
+        delta = delta.reshape((self.batch_size, self.in_rows, self.in_cols, self.in_channels))
+        return dict(delta=delta)
+
+    def summary(self):
+        raise NotImplementedError
+
+    def __call__(self, x, eval=False):
+        return self.forward(x, eval)
+
+
+# endregion
+
+# region Pool1d
+class Pool1d(Pool2d, ABC):
+    def __init__(self, **kwargs):
+        kwargs["kernel_size"] = 1, kwargs["kernel_size"]
+        kwargs["padding"] = 0, kwargs["padding"]
+        super().__init__(**kwargs)
+
+    def forward(self, x, eval=False):
+        if not isinstance(x, np.ndarray):
+            x = np.array(x)
+        assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        assert len(x.shape) == 3, f"Invalid input shape in {self.__class__.__name__}." \
+                                  f" Valid shape is: (batch_size, seq_len, in_features)"
+        x = np.expand_dims(x, axis=1)
+        a = super().forward(x)
+        a = np.squeeze(a, axis=1)
+        return a
+
+    def backward(self, **delta):
+        delta = super().backward(**delta)
+        delta["delta"] = np.squeeze(delta["delta"], axis=1)
+        return delta
+
+    def summary(self):
+        raise NotImplementedError
+
+# endregion

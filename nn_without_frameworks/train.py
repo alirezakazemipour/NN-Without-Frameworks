@@ -75,7 +75,7 @@ def train_regression(nn):
 # endregion
 
 
-def train_classification(nn):
+def train_classification(nn): # noqa
     print(f"-----{nn.__name__}: Classification-----")
 
     class MyNet(nn.Module):
@@ -83,44 +83,57 @@ def train_classification(nn):
             super().__init__()
             self.input_dim = input_dim
             self.out_dim = out_dim
-            self.hidden = nn.layers.Dense(in_features=self.input_dim,
+            self.conv1 = nn.layers.Conv1d(in_features=2,
                                           out_features=100,
+                                          kernel_size=2,
+                                          stride=1,
+                                          padding=1,
                                           activation=nn.acts.ReLU(),
-                                          weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
-                                          bias_initializer=nn.inits.Constant(0.),
-                                          regularizer_type="l2",
-                                          lam=1e-3
-                                          )
-            self.dropout = nn.layers.Dropout(0.5)
-            # self.bn = nn.layers.LayerNorm(100)
-            self.output = nn.layers.Dense(in_features=100,
-                                          out_features=self.out_dim,
-                                          activation=nn.acts.Sigmoid(),
                                           weight_initializer=nn.inits.XavierUniform(),
-                                          bias_initializer=nn.inits.Constant(0.),
-                                          regularizer_type="l2",
-                                          lam=1e-3
+                                          bias_initializer=nn.inits.Constant(0.1),
                                           )
+            self.conv2 = nn.layers.Conv1d(in_features=100,
+                                          out_features=100,
+                                          kernel_size=2,
+                                          stride=1,
+                                          padding=1,
+                                          activation=nn.acts.ReLU(),
+                                          weight_initializer=nn.inits.XavierUniform(),
+                                          bias_initializer=nn.inits.Constant(0.1),
+                                          )
+            self.maxpool = nn.layers.Pool1d(mode="avg",
+                                            kernel_size=2,
+                                            stride=2,
+                                            padding=1,
+                                            )
+
+            self.out = nn.layers.Dense(in_features=300,
+                                       out_features=1,
+                                       activation=nn.acts.Sigmoid()
+                                       )
 
         def forward(self, x, eval=False):
-            x = self.hidden(x)
-            x = self.dropout(x)
-            # x = self.bn(x, eval)
-            x = self.output(x)
+            x = np.asarray(x)
+            x = x.reshape((-1, 2, 2))
+            x = self.conv1(x)
+            x = self.conv2(x)
+            x = self.maxpool(x, eval)
+            x = x.reshape(x.shape[0], -1)
+            x = self.out(x)
             return x
 
     np.random.seed(123)
     random.seed(123)
 
     num_samples = 100  # number of points per class
-    num_features = 2
+    num_features = 4
     num_classes = 2  # number of classes
 
     epoch = 500
     batch_size = 64
 
-    x = [[None for _ in range(num_features)] for _ in range(num_classes * num_samples)]
-    t = [[None] for _ in range(num_classes * num_samples)]
+    x = [[0 for _ in range(num_features)] for _ in range(num_classes * num_samples)]
+    t = [[0] for _ in range(num_classes * num_samples)]
 
     r = [i / num_samples for i in range(num_samples)]
     for j in range(num_classes):
@@ -131,7 +144,7 @@ def train_classification(nn):
             t[idx][0] = j
 
     my_net = MyNet(num_features, 1)
-    my_net.summary()
+    # my_net.summary()
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []

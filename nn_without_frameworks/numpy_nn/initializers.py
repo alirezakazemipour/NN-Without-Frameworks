@@ -17,8 +17,8 @@ class Constant(Initializer, ABC):
     def __init__(self, c=0):
         self._c = c
 
-    def initialize(self, x):
-        return self._c * np.ones(x)
+    def initialize(self, shape):
+        return self._c * np.ones(shape)
 
 
 class RandomUniform(Initializer, ABC):
