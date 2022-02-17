@@ -123,7 +123,7 @@ def binary_cross_entropy(p, t):
 
 
 def im2col_indices(x, kernel_size, stride, padding):
-    """Find image-to-column transformation indices in the 3D input array.
+    r"""Find image-to-column transformation indices in the 3D input array.
 
     To perform tensor operations (like Convolution) on 3D inputs (like images) in Deep Learning, naive approaches
     are extremely inefficient (i.e. convolution operation on an image is at least in O(n^3)).
@@ -140,13 +140,10 @@ def im2col_indices(x, kernel_size, stride, padding):
     ----------
     x : numpy.ndarray
         Input 3D array in shape (N, rows, cols, channels).
-
     kernel_size : tuple of int or list of int
         Kernel size of the filter.
-
     stride : int
         Stride in both x and y directions.
-
     padding : tuple of int or list of int
         Amount of padding applied to rows and columns
 
@@ -154,29 +151,27 @@ def im2col_indices(x, kernel_size, stride, padding):
     -------
     i : numpy.ndarray
         Indices over row axis.
-
     j : numpy.ndarray
         Indices over column axis.
-
     k : numpy.ndarray
         Indices over depth axis.
 
     References
     ----------
-    .. [1] CS231n (2016), Lecture 11, "CNNs in practice,"
-       http://cs231n.stanford.edu/slides/2016/winter1516_lecture11.pdf
+    .. [1] `CS231n (2016), Lecture 11, "CNNs in practice,"
+       <http://cs231n.stanford.edu/slides/2016/winter1516_lecture11.pdf>`_
 
-    .. [2] Warden (2015). "Why GEMM is at the heart of deep learning,"
-       https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/
+    .. [2] `Warden (2015). "Why GEMM is at the heart of deep learning,"
+       <https://petewarden.com/2015/04/20/why-gemm-is-at-the-heart-of-deep-learning/>`_
 
-    .. [3] Chouri (2019). "Demystifying the math and implementation of Convolutions: Part III,"
-       https://praisethemoon.org/demystifying-the-math-and-implementation-of-convolutions-part-iii/
+    .. [3] `Chouri (2019). "Demystifying the math and implementation of Convolutions: Part III,"
+        <https://praisethemoon.org/demystifying-the-math-and-implementation-of-convolutions-part-iii/>`_
 
-    .. [4] numpy-ml
-    https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/utils/utils.py#L447
+    .. [4] `numpy-ml
+        <https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/utils/utils.py#L447>`_
 
-    .. [5] Kazemipour (2022). "img2col_explained"
-    https://gist.github.com/alirezakazemipour/745041bbcdd294ad5d2049cc975f64aa
+    .. [5] `Kazemipour (2022).
+        "img2col_explained" <https://gist.github.com/alirezakazemipour/745041bbcdd294ad5d2049cc975f64aa>`_
 
     Examples
     --------
@@ -184,21 +179,21 @@ def im2col_indices(x, kernel_size, stride, padding):
     >>> i, j, k = im2col_indices(x, kernel_size=(1, 1), stride=2, padding=(0, 0))
     >>> x[:, i, j, k]
     [[[0]
-  [2]
-  [2]
-  [0]
-  [1]
-  [1]
-  [2]
-  [0]
-  [0]]]
+      [2]
+      [2]
+      [0]
+      [1]
+      [1]
+      [2]
+      [0]
+      [0]]]
     """
     fr, fc = kernel_size
     pr, pc = padding
     batch_size, in_rows, in_cols, in_channel = x.shape
 
-    out_rows = conv_shape(in_rows, fr, stride, pr)
-    out_cols = conv_shape(in_cols, fc, stride, pc)
+    out_rows = conv_out_size(in_rows, fr, stride, pr)
+    out_cols = conv_out_size(in_cols, fc, stride, pc)
 
     i0 = np.repeat(np.arange(fr), fc)
     i0 = np.tile(i0, in_channel)
@@ -230,11 +225,38 @@ def col2im(x_col, i, j, k, batch_size, n_rows, n_cols, n_channel, kernel_size, p
     return x_pad[:, pr:pr2, pc:pc2, :]
 
 
-def conv_shape(input_size, kernel_size, stride=1, padding=0):
+def conv_out_size(input_size, kernel_size, stride=1, padding=0):
+    """Calculate the output size of convolution operation on the input.
+
+    Parameters
+    ----------
+    input_size : int
+        Row/Column size of the input tensor.
+    kernel_size : int
+        Kernel size of the convolution filter.
+    stride : int, default 1
+        Stride of the convolution filter.
+    padding : int, default 0
+        The amount of padding added to the input's given dimension.
+
+    Returns
+    -------
+    int
+        Output size of the convolution operation on the given input's dimension.
+
+    Notes
+    -----
+    .. math:: n_{out} = \lfloor\\frac{n_{in} + 2 * p - k}{s}\\rfloor + 1
+
+    Examples
+    --------
+    >>> x = np.random.random((5, 5))
+    >>> conv_out_size(x.shape[0], kernel_size=2, stride=2, padding=1)
+    3
+    """
     return (input_size + 2 * padding - kernel_size) // stride + 1
 
 
 if __name__ == "__main__":
-    x = np.random.randint(0, 3, size=(1, 5, 5, 1))
-    i, j, k = im2col_indices(x, kernel_size=(1, 1), stride=2, padding=(0, 0))
-    print(x[:, i, j, k])
+    x = np.random.random((5, 5))
+    conv_out_size(x.shape[0], 2, 2, 1)

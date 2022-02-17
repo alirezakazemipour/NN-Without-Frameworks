@@ -438,8 +438,8 @@ class Conv2d(ParamLayer, ABC):
         z = x_col.dot(self.vars["W"]) + self.vars["b"]
         self.z = z
         a = self.act(z)
-        out_rows = conv_shape(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
-        out_cols = conv_shape(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
+        out_rows = conv_out_size(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
+        out_cols = conv_out_size(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
         return a.reshape((self.batch_size, out_rows, out_cols, self.out_features))
 
     def backward(self, **delta):
@@ -622,8 +622,8 @@ class Pool2d(Layer, ABC):
         elif self.mode == "avg":
             out = np.mean(x_col, axis=-1)
 
-        out_rows = conv_shape(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
-        out_cols = conv_shape(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
+        out_rows = conv_out_size(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
+        out_cols = conv_out_size(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
         return out.reshape((self.batch_size, out_rows, out_cols, self.in_channels))  # noqa
 
     def backward(self, **delta):
