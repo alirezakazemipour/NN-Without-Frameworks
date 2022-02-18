@@ -109,7 +109,8 @@ def train_classification(nn): # noqa
 
             self.out = nn.layers.Dense(in_features=300,
                                        out_features=1,
-                                       activation=nn.acts.Sigmoid()
+                                       activation=nn.acts.Sigmoid(),
+                                       weight_initializer=nn.inits.HeNormal(nn.acts.ReLU())
                                        )
 
         def forward(self, x, eval=False):

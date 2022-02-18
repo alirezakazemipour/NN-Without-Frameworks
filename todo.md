@@ -26,3 +26,4 @@
 - [ ] Layer Normalization
 - [ ] Global Pooling
 - [ ] Consistent tf like _summary_ function
+- [ ] _eval_ mode

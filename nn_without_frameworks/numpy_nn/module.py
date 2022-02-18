@@ -1,7 +1,7 @@
 from .losses import Loss
 from .layers import Layer, ParamLayer
 from tabulate import tabulate
-
+from copy import deepcopy as dc
 
 class Module:
     def __init__(self):
@@ -51,10 +51,11 @@ class Module:
         print(f"total trainable parameters: {total_param}\n")
 
     def set_weights(self, params):
-        self._parameters = params
+        copy_param = dc(params)
+        self._parameters = dc(params)
         for i in range(len(self._layers)):
             if isinstance(self._layers[i], ParamLayer):
-                k = list(params.keys())[0]
+                k = list(copy_param.keys())[0]
                 self._layers[i].vars = self._parameters[k]
-                params.pop(k)
+                copy_param.pop(k)
 
