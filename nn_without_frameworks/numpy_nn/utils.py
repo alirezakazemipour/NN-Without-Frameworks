@@ -1,3 +1,24 @@
+"""Define utilities to be shared across the project and be reachable by different modules.
+
+There are various helper functions and utilities that are used within a Neural Network framework and their usages are
+as broad as to be used for example by a Loss function (i.e. MSE) or Neural Net layer (like Conv2d).
+
+It's a common idea among developers to build up a separate module to contain these utilities and consequently, provide
+ease-of-use and further, shared accessibility for other out-of-scope modules.
+
+Routine Listings
+---------------
+check_shapes
+
+binary_cross_entropy
+
+im2col_indices
+
+col2im
+
+conv_out_size
+
+"""
 import numpy as np
 import inspect
 from typing import Callable
