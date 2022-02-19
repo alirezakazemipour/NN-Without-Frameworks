@@ -75,7 +75,7 @@ def train_regression(nn):
 # endregion
 
 
-def train_classification(nn): # noqa
+def train_classification(nn):  # noqa
     print(f"-----{nn.__name__}: Classification-----")
 
     class MyNet(nn.Module):

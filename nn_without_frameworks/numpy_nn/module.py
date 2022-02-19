@@ -3,6 +3,7 @@ from .layers import Layer, ParamLayer
 from tabulate import tabulate
 from copy import deepcopy as dc
 
+
 class Module:
     def __init__(self):
         self._parameters = {}
@@ -58,4 +59,3 @@ class Module:
                 k = list(copy_param.keys())[0]
                 self._layers[i].vars = self._parameters[k]
                 copy_param.pop(k)
-

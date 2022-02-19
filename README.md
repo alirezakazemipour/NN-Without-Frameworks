@@ -3,7 +3,7 @@
 # NN-Without-Frameworks
 This project aims to implement different Neural Network configuration **without** using scientific frameworks like **TensorFlow** or **PyTorch**.
 
-Each network/config is implemented in 4 formats while trying to mimic [PyTorch's Subclassing](https://pytorch.org/tutorials/beginner/examples_nn/two_layer_net_module.html) procedure:
+Each network/config is implemented in 4 formats while trying to get the best of both worlds of TensorFlow (+ Keras) and PyTorch :
 1. In Python using NumPy
 2. In Python without taking advantage of NumPy
 3. In java
@@ -54,12 +54,17 @@ Each directory contains a `train.*` that performs tests of correctness and funct
 <p>
 <img src="figures/classification.png" height=340/>
 </p>  
+### DQN
+<p>
+<img src="figures/cartpole.gif" height=340/>
+</p>  
 
 ## Snippet
 **Define your network**
 - Python:
 ```python
-import python_nn.numpy_nn as nn  #  import python_nn.pure_nn as nn
+from nn_without_frameworks import numpy_nn as nn  # from nn_without_frameworks import pure_nn as nn
+
 
 class MyNet(nn.Module):
     def __init__(self, input_dim, out_dim):
