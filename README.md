@@ -54,8 +54,9 @@ Each directory contains a `train.*` that performs tests of correctness and funct
 <p>
 <img src="figures/classification.png" height=340/>
 </p>  
+
 ### DQN
-<p>
+<p align="center">
 <img src="figures/cartpole.gif" height=340/>
 </p>  
 
