@@ -5,12 +5,8 @@ from .utils import *
 from typing import Optional
 
 
-# TODO:
-# __str__()
-# __repr__()
-
 def supported_layers():
-    return [x.__name__ for x in ParamLayer.__subclasses__()]
+    return [x.__name__ for x in ParamLayer.__subclasses__()] # noqa
 
 
 # region Layer
