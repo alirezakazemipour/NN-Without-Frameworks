@@ -42,7 +42,7 @@ Regularizer:
 Normalization:
 - BatchNorm1d
 
-## What is only supported in numpy? (in addition to what aforementioned above)
+## What is only supported in numpy? (in addition to aforementioned settings)
 Layers:
 - LSTM (LSTMCell respectively)
 - Conv1d & Conv2d
