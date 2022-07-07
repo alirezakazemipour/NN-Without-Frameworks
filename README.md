@@ -17,7 +17,7 @@ Activations:
 - Linear
 - ReLU
 
-Loss functions:
+Loss Functions:
 - MSE 
 - Cross Entropy
 
@@ -42,7 +42,21 @@ Regularizer:
 Normalization:
 - BatchNorm1d
 
+## What is only supported in numpy? (in addition to what aforementioned above)
+Layers:
+- LSTM (LSTMCell respectively)
+- Conv1d & Conv2d
+- Pool1d & Pool2d
 
+Regularizer:
+- Dropout
+
+Normalization:
+- Layer Nomalization (LayerNorm)
+
+Loss Functions:
+- Binary Focal
+- Binary Cross Entropy
 
 ## Examples
 
