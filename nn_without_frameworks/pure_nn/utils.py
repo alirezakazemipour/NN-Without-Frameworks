@@ -1,115 +1,6 @@
-import math
 from copy import deepcopy
-
-
-def mat_mul(a, b):
-    i, j = len(a), len(a[0])
-    n, k = len(b), len(b[0])
-
-    assert n == j
-    temp = [[None for _ in range(k)] for _ in range(i)]
-    for w in range(i):
-        for h in range(k):
-            temp[w][h] = 0
-            for r in range(j):
-                temp[w][h] += a[w][r] * b[r][h]
-    return temp
-
-
-def mat_add(a, b):
-    i, j = len(a), len(a[0])
-    n, k = len(b), len(b[0])
-
-    assert i == n and j == k
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = a[w][h] + b[w][h]
-    return temp
-
-
-def add_scalar(a, scalar):
-    i, j = len(a), len(a[0])
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = a[w][h] + scalar
-    return temp
-
-
-def element_wise_mul(a, b):
-    i, j = len(a), len(a[0])
-    n, k = len(b), len(b[0])
-
-    assert i == n and j == k
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = a[w][h] * b[w][h]
-    return temp
-
-
-def element_wise_rev(a):
-    i, j = len(a), len(a[0])
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = 1 / a[w][h]
-    return temp
-
-
-def mat_sqrt(a):
-    i, j = len(a), len(a[0])
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = math.sqrt(a[w][h])
-    return temp
-
-
-def transpose(a):
-    i, j = len(a), len(a[0])
-    temp = [[None for _ in range(i)] for _ in range(j)]
-    for w in range(j):
-        for h in range(i):
-            temp[w][h] = a[h][w]
-    return temp
-
-
-def rescale(a, scale):
-    i, j = len(a), len(a[0])
-    temp = [[None for _ in range(j)] for _ in range(i)]
-    for w in range(i):
-        for h in range(j):
-            temp[w][h] = a[w][h] * scale
-    return temp
-
-
-def batch_sum(a):
-    i, j = len(a), len(a[0])
-    temp = [[0 for _ in range(j)]]
-    for w in range(i):
-        for h in range(j):
-            temp[0][h] += a[w][h]
-    return temp
-
-
-def batch_mean(a):
-    i, j = len(a), len(a[0])
-    temp = [[0 for _ in range(j)]]
-    for w in range(i):
-        for h in range(j):
-            temp[0][h] += (a[w][h] / i)
-    return temp
-
-
-def batch_var(a, mu):
-    i, j = len(a), len(a[0])
-    temp = [[0 for _ in range(j)]]
-    for w in range(i):
-        for h in range(j):
-            temp[0][h] += ((a[w][h] - mu[0][h]) ** 2) / i
-    return temp
+from typing import Tuple
+from numbers import Number
 
 
 def equal_batch_size(a, b):
@@ -130,11 +21,156 @@ def equal_batch_size(a, b):
         return a, temp
 
 
+class Matrix:
+    def __init__(self, *args):
+        if len(args) > 1:
+            self._rows = args[0]
+            self._cols = args[1]
+            self._value = [[None for _ in range(self._cols)] for _ in range(self._rows)]
+
+        else:
+            value = args[0]
+            self._rows = len(value)
+            self._cols = len(value[0])
+            self._value = value
+
+    @property
+    def rows(self):
+        return self._rows
+
+    @property
+    def cols(self):
+        return self._cols
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, v):
+        self._value = v
+
+    def __getitem__(self, item: Tuple):
+        i, j = item
+        return self._value[i][j]  # noqa
+
+    def __setitem__(self, key: Tuple, value):
+        i, j = key
+        self._value[i][j] = value  # noqa
+
+    def __len__(self):
+        return self._rows
+
+    def __matmul__(self, other):
+        assert isinstance(other, Matrix)
+        i, j = self._rows, self._cols
+        n, k = other.rows, other.cols
+
+        assert n == j
+        temp = Matrix(i, k)
+        for w in range(i):
+            for h in range(k):
+                temp[w, h] = 0
+                for r in range(j):
+                    temp[w, h] += self._value[w][r] * other[r, h]
+        return temp
+
+    def __mul__(self, other):
+        if isinstance(other, Number):
+            i, j = self._rows, self._cols
+            temp = Matrix(i, j)
+            for w in range(i):
+                for h in range(j):
+                    temp[w, h] = self._value[w][h] * other
+            return temp
+
+        elif isinstance(other, Matrix):
+            i, j = self._rows, self._cols
+            n, k = other.rows, other.cols
+
+            assert i == n and j == k
+            temp = Matrix(i, j)
+            for w in range(i):
+                for h in range(j):
+                    temp[w, h] = self._value[w][h] * other[w, h]
+            return temp
+
+        else:
+            raise NotImplementedError(type(other))
+
+    def __add__(self, other):
+        if isinstance(other, Number):
+            i, j = self._rows, self._cols
+            temp = Matrix(i, j)
+            for w in range(i):
+                for h in range(j):
+                    temp[w, h] = self._value[w][h] + other
+            return temp
+
+        elif isinstance(other, Matrix):
+            i, j = self._rows, self._cols
+            n, k = other.rows, other.cols
+
+            assert i == n and j == k
+            temp = Matrix(i, j)
+            for w in range(i):
+                for h in range(j):
+                    temp[w, h] = self._value[w][h] + other[w, h]
+            return temp
+
+        else:
+            raise NotImplementedError(type(other))
+
+    def __pow__(self, power, modulo=None):
+        i, j = self._rows, self._cols
+        temp = Matrix(i, j)
+        for w in range(i):
+            for h in range(j):
+                temp[w, h] = self._value[i][j] ** power
+        return temp
+
+    def __repr__(self):
+        return str(self.value)
+
+    def sum(self):
+        i, j = self._rows, self._cols
+        temp = Matrix([[0 for _ in range(j)]])
+        for w in range(i):
+            for h in range(j):
+                temp[0, h] += a[w][h]
+        return temp
+
+    def t(self):
+        i, j = self._rows, self._cols
+        temp = Matrix(j, i)
+        for w in range(j):
+            for h in range(i):
+                temp[w, h] = self._value[h][w]
+        return temp
+
+    def mean(self):
+        i, j = self._rows, self._cols
+        temp = Matrix([[0 for _ in range(j)]])
+        for w in range(i):
+            for h in range(j):
+                temp[0, h] += (self._value[w][h] / i)
+        return temp
+
+    def var(self):
+        i, j = self._rows, self._cols
+        temp = Matrix([[0 for _ in range(j)]])
+        mu = self.mean()
+        for w in range(i):
+            for h in range(j):
+                temp[0, h] += ((a[w][h] - mu[0, h]) ** 2) / i
+        return temp
+
+
 if __name__ == "__main__":
-    a = [[1, 2], [3, 4]]
-    b = [[5, 6], [7, 8]]
-    print(mat_mul(a, b))
-    print(mat_add(a, b))
-    print(element_wise_mul(a, b))
-    print(transpose(a))
-    print(rescale(a, 1 / 5))
+    a = Matrix([[1, 2], [3, 4]])
+    b = Matrix([[5, 6], [7, 8]])
+    print(a @ b)
+    print(a + b)
+    print(a * b)
+    print(a.t())
+    print(a * (1 / 5))
