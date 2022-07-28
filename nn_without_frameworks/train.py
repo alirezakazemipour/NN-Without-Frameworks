@@ -38,7 +38,7 @@ def train_regression(nn):
     random.seed(1)
     x = [[0.01 * i] for i in range(-100, 100)]
     t = [[k[0] ** 2 + random.gauss(0, 1) * 0.1] for k in x]
-    epoch = 1000
+    epoch = 200
     batch_size = 64
 
     my_net = MyNet(1, 1)
@@ -198,15 +198,15 @@ def train_classification(nn):  # noqa
 
 
 if __name__ == "__main__":
-    import numpy_nn as nn
-
-    nn.seed(123)
-
-    # train_regression(nn)
-    train_classification(nn)
-
-    # import pure_nn as nn
+    # import numpy_nn as nn
     #
-    # #
+    # nn.seed(123)
+    #
     # train_regression(nn)
+    # train_classification(nn)
+
+    import pure_nn as nn
+
+    #
+    train_regression(nn)
     # train_classification(nn)

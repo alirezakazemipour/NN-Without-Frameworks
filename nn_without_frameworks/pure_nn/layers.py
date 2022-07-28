@@ -70,9 +70,8 @@ class Dense(ParamLayer, ABC):
     def forward(self, x):
         if isinstance(x, np.ndarray):
             x = np.ndarray.tolist(x)
-        assert isinstance(x, list)
-        assert isinstance(x[0], list), "Feed the input to the network in batch mode: (batch_size, n_dims)"
-        x = Matrix(x)
+        if not isinstance(x, Matrix):
+            x = Matrix(x)
         self.input = x
         # z = x.dot(self.vars["W"]) + self.vars["b"]
         z = x @ self.vars["W"]
@@ -82,7 +81,7 @@ class Dense(ParamLayer, ABC):
         z = z + b
         self.z = z
         a = self.act(z)
-        return a
+        return a.value
 
     def backward(self, delta):
         dz = delta * self.act.derivative(self.z)
@@ -122,14 +121,13 @@ class BatchNorm1d(ParamLayer, ABC):
         self.beta = 0.1
         self.mu = 0
         self.std = 0
-        self.mu_hat = [[0 for _ in range(self.in_features)]]
-        self.std_hat = [[1 for _ in range(self.in_features)]]
+        self.mu_hat = Matrix([[0 for _ in range(self.in_features)]])
+        self.std_hat = Matrix([[1 for _ in range(self.in_features)]])
         self.gamma = None
 
-    def forward(self, x, eval=False):
-        assert isinstance(x, list)
-        assert isinstance(x[0], list), "Feed the input to the network in batch mode: (batch_size, n_dims)"
-        x = Matrix(x)
+    def forward(self, x: Matrix, eval=False):
+        if not isinstance(x, Matrix):
+            x = Matrix(x)
         if not eval:
             self.mu = x.mean()
             self.std = x.var() ** 0.5
@@ -155,7 +153,7 @@ class BatchNorm1d(ParamLayer, ABC):
             beta.append(self.vars["b"][0])
 
         y = (self.gamma * x_hat) + beta
-        return y
+        return y.value
 
     def backward(self, delta: Matrix):
         #  https://kevinzakka.github.io/2016/09/14/batch_normalization/
@@ -167,11 +165,11 @@ class BatchNorm1d(ParamLayer, ABC):
 
         a1 = dx_hat * m
         a2 = dx_hat.sum()
-        a3 = element_wise_mul(*equal_batch_size(self.x_hat, (dx_hat * self.x_hat).sum()))
-        num = mat_add(a1, mat_add(*equal_batch_size(rescale(a2, -1), rescale(a3, -1))))
-        den = rescale(mat_sqrt(add_scalar(element_wise_mul(self.std, self.std), self.eps)), m)
+        a3 = self.x_hat * (dx_hat * self.x_hat).sum()
+        num = a1 + (a2 * -1) + (a3 * -1)
+        den = (((self.std * self.std) + self.eps) ** 0.5) * m
 
-        delta = element_wise_mul(*equal_batch_size(num, element_wise_rev(den)))
+        delta = num * (den ** -1)
         return delta
 
     def __call__(self, x, eval=False):

@@ -1,6 +1,6 @@
 import math
 from abc import ABC
-from .utils import mat_add, rescale
+from .utils import Matrix
 
 
 def supported_losses():
@@ -14,7 +14,7 @@ class Loss:
 
 
 class LossFunc:
-    def __init__(self, pred=None, target=None):
+    def __init__(self, pred: Matrix = None, target: Matrix = None):
         self.pred = pred
         self.target = target
 
@@ -29,18 +29,18 @@ class LossFunc:
         return self.apply(p, t)
 
 
-class MSELoss(LossFunc, ABC):
+class MSE(LossFunc, ABC):
     def __init__(self):
-        super(MSELoss, self).__init__()
+        super(MSE, self).__init__()
 
-    def apply(self, p, t):
-        super(MSELoss, self).__init__(p, t)
-        # return Loss(np.mean((p - t) ** 2) / 2, self.delta)
-        assert isinstance(p, list) and isinstance(t, list)
-        assert isinstance(p[0], list) and \
-               isinstance(t[0], list), "target and prediction should be in batch mode: (batch_size, n_dims)"
-
+    def apply(self, p: Matrix, t: Matrix):
+        if not isinstance(t, Matrix):
+            p = Matrix(p)
+        if not isinstance(t, Matrix):
+            t = Matrix(t)
         assert len(p) == len(t) and len(p[0]) == len(t[0])
+        super(MSE, self).__init__(p, t)
+        # return Loss(np.mean((p - t) ** 2) / 2, self.delta)
         loss = 0
         for w, h in zip(p, t):
             for x, y in zip(w, h):
@@ -49,7 +49,7 @@ class MSELoss(LossFunc, ABC):
 
     @property
     def delta(self):
-        return mat_add(self.pred, rescale(self.target, -1))
+        return self.pred + (self.target * -1)
 
 
 class CrossEntropyLoss(LossFunc, ABC):
