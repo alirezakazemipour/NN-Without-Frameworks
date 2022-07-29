@@ -1,6 +1,8 @@
 from typing import Tuple, Union
 from numbers import Number
 from copy import deepcopy
+from more_itertools import sliding_window
+from itertools import chain
 
 
 def broadcast(x, y):
@@ -23,6 +25,44 @@ def broadcast(x, y):
     return a, b
 
 
+def naive_matmul(a, b):
+    i, j = a.shape
+    n, k = b.shape
+    temp = Matrix(i, k)
+    for w in range(i):
+        for h in range(k):
+            temp[w, h] = 0
+            for r in range(j):
+                temp[w, h] += a[w, r] * b[r, h]
+    return temp
+
+
+def strassen(x, y):
+    i, j = x.shape
+    n, k = y.shape
+    if x.shape == (1, 1):
+        return x * y
+
+    a, b = Matrix(x[: i // 2, : j // 2]), Matrix(x[: i // 2, j // 2:])
+    c, d = Matrix(x[i // 2:, : j // 2]), Matrix(x[i // 2:, j // 2:])
+    e, f = Matrix(y[: n // 2, : k // 2]), Matrix(y[: n // 2, k // 2:])
+    g, h = Matrix(y[n // 2:, : k // 2]), Matrix(y[n // 2:, k // 2:])
+
+    m1 = strassen(a + c, e + f)
+    m2 = strassen(b + d, g + h)
+    m3 = strassen(a - d, e + h)
+    m4 = strassen(a, f - h)
+    m5 = strassen(c + d, e)
+    m6 = strassen(a + b, h)
+    m7 = strassen(d, g - e)
+
+    i = m2 + m3 - m6 - m7
+    j = m4 + m6
+    k = m5 + m7
+    l = m1 - m3 - m4 - m5
+    return (i.concat(j)).stack(k.concat(l))
+
+
 class Matrix:
     def __init__(self, *args):
         if len(args) == 2:
@@ -35,7 +75,7 @@ class Matrix:
             self._cols = args[1]
             self._value = [[args[2] for _ in range(self._cols)] for _ in range(self._rows)]
         else:
-            value = args[0]
+            value = args[0] if isinstance(args[0][0], list) else list(args[0])
             self._rows = len(value)
             self._cols = len(value[0])
             self._value = value
@@ -64,18 +104,30 @@ class Matrix:
     def value(self, v):
         self._value = v
 
-    def __getitem__(self, item: Union[int, Tuple]):
-        if isinstance(item, Tuple):
-            i, j = item
-            return self._value[i][j]  # noqa
-        elif isinstance(item, int):
+    def __getitem__(self, item: Union[int, slice, Tuple]):
+        if isinstance(item, (int, slice)):
             return self._value[item]
+
+        elif isinstance(item, Tuple):
+            i, j = item
+            if isinstance(i, int) and isinstance(j, (int, slice)):
+                return self._value[i][j]  # noqa
+            elif isinstance(i, slice) and isinstance(j, (int, slice)):
+                return [v[j] for v in self._value[i]]
+            else:
+                raise NotImplementedError(f"{type(item)} -> ({type(i)}, {type(j)})")
+
+        else:
+            raise NotImplementedError(type(item))
+
+    def __setitem__(self, key: Union[int, Tuple], value):
+        if isinstance(key, int):
+            self._value[key] = value
+        elif isinstance(key, Tuple):
+            i, j = key
+            self._value[i][j] = value  # noqa
         else:
             raise NotImplementedError
-
-    def __setitem__(self, key: Tuple, value):
-        i, j = key
-        self._value[i][j] = value  # noqa
 
     def __len__(self):
         return self._rows
@@ -84,14 +136,12 @@ class Matrix:
         assert isinstance(other, Matrix)
         i, j = self._rows, self._cols
         n, k = other.rows, other.cols
-
         assert n == j
-        temp = Matrix(i, k)
-        for w in range(i):
-            for h in range(k):
-                temp[w, h] = 0
-                for r in range(j):
-                    temp[w, h] += self._value[w][r] * other[r, h]
+        if i == j and n == k:
+            temp = strassen(self, other)
+        else:
+            temp = naive_matmul(self, other)
+
         return temp
 
     def __mul__(self, other):
@@ -141,6 +191,9 @@ class Matrix:
 
         else:
             raise NotImplementedError(type(other))
+
+    def __sub__(self, other):
+        return self.__add__(other * -1)
 
     def __pow__(self, power, modulo=None):
         i, j = self._rows, self._cols
@@ -208,13 +261,34 @@ class Matrix:
                 temp[0, h] += ((self._value[w][h] - mu[0, h]) ** 2) / i
         return temp
 
+    def concat(self, other):
+        assert self._rows == other.rows
+        temp = Matrix(self._rows, self._cols + other.cols)
+        for i in range(self._rows):
+            temp[i] = self._value[i] + other.value[i]
+        return temp
+
+    def stack(self, other):
+        assert self._cols == other.cols
+        return Matrix(self._value + other.value)
+
 
 if __name__ == "__main__":
-    a = Matrix([[1, 2], [3, 4]])
-    b = Matrix([[5, 6], [7, 8]])
+    a = Matrix([[1, 2, 3, 4],
+                [5, 6, 7, 8],
+                [9, 10, 11, 12],
+                [13, 14, 15, 16]
+                ]
+               )
+    b = Matrix([[17, 18, 19, 20],
+                [21, 22, 23, 24],
+                [25, 26, 27, 28],
+                [29, 30, 31, 32]
+                ]
+               )
     print(a, b)
-    # print(a @ b)
+    print(a @ b)
     print(a + b)
     print(a * b)
-    # print(a.t())
-    # print(a * (1 / 5))
+    print(a.t())
+    print(a * (1 / 5))
