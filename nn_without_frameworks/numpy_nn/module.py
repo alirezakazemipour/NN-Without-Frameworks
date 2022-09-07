@@ -8,6 +8,7 @@ class Module:
     def __init__(self):
         self._parameters = {}
         self._layers = []
+        self._has_been_built = False
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval=eval)
@@ -33,10 +34,22 @@ class Module:
         for layer in self._layers[::-1]:
             delta = layer.backward(**delta)
 
+    def build(self, batch):
+        self(batch)
+        self._has_been_built = True
+
     def summary(self):
+        if not self._has_been_built:
+            raise Exception(f"You should first call the build method or perform a feedforward pass"
+                            f" before invoking summary for {self.__class__.__name__}!"
+                            )
         print("\nModel Summary:")
         data = []
-        name, output_shape, n_param = "Input", (None, self._layers[0].input_shape), 0
+        if isinstance(self._layers[0].input_shape, tuple):
+            input_shape = (-1,) + self._layers[0].input_shape
+        else:
+            input_shape = -1, self._layers[0].input_shape
+        name, output_shape, n_param = "Input", input_shape, 0
         data.append((name, output_shape, n_param))
         for i, layer in enumerate(self._layers):
             name, output_shape, n_param = layer.summary()

@@ -6,7 +6,7 @@ from typing import Optional
 
 
 def supported_layers():
-    return [x.__name__ for x in ParamLayer.__subclasses__()] # noqa
+    return [x.__name__ for x in ParamLayer.__subclasses__()]  # noqa
 
 
 # region Layer
@@ -15,6 +15,9 @@ class Layer:
         raise NotImplementedError
 
     def backward(self, **x):
+        raise NotImplementedError
+
+    def summary(self, **kwargs):
         raise NotImplementedError
 
     def __call__(self, **kwargs):
@@ -46,7 +49,7 @@ class ParamLayer(Layer, ABC):
     def summary(self):
         name = self.__class__.__name__
         n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
-        output_shape = (None, self.vars["b"].shape[1])
+        output_shape = (-1, self.vars["b"].shape[1])
         return name, output_shape, n_param
 
     @property
@@ -183,11 +186,14 @@ class Dropout(Layer, ABC):
 
         self.p = 1 - p
         self.mask = None
+        self.out_features = None
 
     def forward(self, x, eval=False):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
         assert len(x.shape) > 1, "Feed the input to the network in batch mode: (batch_size, n_dims)"
+        if self.out_features is None:
+            self.out_features = x.shape[-1]
         if not eval:
             self.mask = (np.random.rand(*x.shape) < self.p) / self.p
             return x * self.mask
@@ -199,7 +205,11 @@ class Dropout(Layer, ABC):
         return dict(delta=delta * self.mask)
 
     def summary(self):
-        raise NotImplementedError
+        assert self.out_features is not None
+        name = self.__class__.__name__
+        n_param = 0
+        output_shape = (-1, self.out_features)
+        return name, output_shape, n_param
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -306,7 +316,7 @@ class LSTMCell(ParamLayer, ABC):
     def summary(self):
         name = self.__class__.__name__
         n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
-        output_shape = (None, self.vars["b"].shape[1] // 4)
+        output_shape = (-1, self.vars["b"].shape[1] // 4)
         return name, output_shape, n_param
 
     def __call__(self, x, h, c, eval=False):
@@ -333,7 +343,12 @@ class LSTM(LSTMCell, ABC):
             x = np.array(x)
         assert len(x.shape) == 3, "x should be in (batch_size, sequence_length, in_features) shape!"
         output = []
-        self.batch_size, self.seq_len, num_feats = x.shape
+        if self.seq_len is None:
+            self.batch_size, self.seq_len, num_feats = x.shape
+        else:
+            _, seq_len, _ = x.shape
+            if self.seq_len != seq_len:
+                raise RuntimeError("Sequence Length of the LSTM layer should be remained fixed!")
         for t in range(self.seq_len):
             self.t = t
             h, c = super(LSTM, self).forward(x[:, t, :], h, c, eval)
@@ -404,6 +419,7 @@ class Conv2d(ParamLayer, ABC):
         self.in_cols = None
         self.batch_size = None
         self.i, self.j, self.k = None, None, None
+        self.output_shape = None
 
         super().__init__(weight_shape=(self.kernel_size[0] * self.kernel_size[1] * in_features, out_features),
                          weight_initializer=weight_initializer,
@@ -436,7 +452,10 @@ class Conv2d(ParamLayer, ABC):
         a = self.act(z)
         out_rows = conv_out_size(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
         out_cols = conv_out_size(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
-        return a.reshape((self.batch_size, out_rows, out_cols, self.out_features))
+        a = a.reshape((self.batch_size, out_rows, out_cols, self.out_features))
+        if self.output_shape is None:
+            self.output_shape = a.shape
+        return a
 
     def backward(self, **delta):
         #  https://github.com/ddbourgin/numpy-ml/blob/b0359af5285fbf9699d64fd5ec059493228af03e/numpy_ml/neural_nets/layers/layers.py#L3048
@@ -462,6 +481,12 @@ class Conv2d(ParamLayer, ABC):
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
+
+    def summary(self):
+        assert self.output_shape is not None
+        name = self.__class__.__name__
+        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
+        return name, self.output_shape, n_param
 
 
 # endregion
@@ -491,13 +516,8 @@ class Conv1d(Conv2d, ABC):
         return delta
 
     def summary(self):
-        if self.seq_len is None:
-            raise AttributeError(
-                f"`seq_len` should be specified prior to invoking summary! in {self.__class__.__name__}")
-        name = self.__class__.__name__
-        n_param = self.vars["W"].shape[0] * self.vars["W"].shape[1] + self.vars["b"].shape[1]
-        output_shape = (None, self.seq_len, self.vars["b"].shape[1])
-        return name, output_shape, n_param
+        self.output_shape = -1, self.output_shape[2], self.output_shape[3]
+        return super().summary()
 
     @property
     def input_shape(self):
@@ -577,6 +597,7 @@ class Pool2d(Layer, ABC):
         self.i, self.j, self.k = None, None, None
         self.input = None
         self.idx = None
+        self.output_shape = None
 
     def forward(self, x, eval=False):  # noqa
         if not isinstance(x, np.ndarray):
@@ -620,7 +641,10 @@ class Pool2d(Layer, ABC):
 
         out_rows = conv_out_size(self.in_rows, self.kernel_size[0], self.stride, self.padding[0])
         out_cols = conv_out_size(self.in_cols, self.kernel_size[1], self.stride, self.padding[1])
-        return out.reshape((self.batch_size, out_rows, out_cols, self.in_channels))  # noqa
+        out = out.reshape((self.batch_size, out_rows, out_cols, self.in_channels))  # noqa
+        if self.output_shape is None:
+            self.output_shape = out.shape
+        return out
 
     def backward(self, **delta):
         dout = delta["delta"].reshape(self.batch_size * self.in_channels, -1)  # noqa
@@ -647,7 +671,10 @@ class Pool2d(Layer, ABC):
         return dict(delta=delta)
 
     def summary(self):
-        raise NotImplementedError
+        assert self.output_shape is not None
+        name = self.__class__.__name__
+        n_param = 0
+        return name, self.output_shape, n_param
 
     def __call__(self, x, eval=False):
         return self.forward(x, eval)
@@ -679,6 +706,7 @@ class Pool1d(Pool2d, ABC):
         return delta
 
     def summary(self):
-        raise NotImplementedError
+        self.output_shape = -1, self.output_shape[2], self.output_shape[3]
+        return super().summary()
 
 # endregion

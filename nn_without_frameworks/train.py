@@ -20,7 +20,8 @@ def train_regression(nn):
                                           regularizer_type="l2",
                                           lam=1e-3
                                           )
-            self.bn = nn.layers.BatchNorm1d(100)
+            self.bn = nn.layers.LayerNorm(100)
+            self.dropout = nn.layers.Dropout()
             self.output = nn.layers.Dense(in_features=100,
                                           out_features=self.out_dim,
                                           weight_initializer=nn.inits.XavierUniform(),
@@ -32,6 +33,7 @@ def train_regression(nn):
         def forward(self, x, eval=False):
             x = self.hidden(x)
             x = self.bn(x, eval)
+            x = self.dropout(x, eval)
             return self.output(x)
 
     np.random.seed(1)
@@ -41,7 +43,28 @@ def train_regression(nn):
     epoch = 200
     batch_size = 64
 
-    my_net = MyNet(1, 1)
+    # my_net = MyNet(1, 1)
+    my_net = nn.Sequential(nn.layers.Dense(in_features=1,
+                                           out_features=200,
+                                           activation=nn.acts.ReLU(),
+                                           weight_initializer=nn.inits.HeNormal(nn.acts.ReLU()),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           ),
+                           nn.layers.LayerNorm(200),
+                           nn.layers.Dropout(),
+                           nn.layers.Dense(in_features=200,
+                                           out_features=1,
+                                           weight_initializer=nn.inits.XavierUniform(),
+                                           bias_initializer=nn.inits.Constant(0.),
+                                           regularizer_type="l2",
+                                           lam=1e-3
+                                           )
+                           )
+    my_net.build(np.ones((100, 1)))
+    my_net.summary()
+    return
     mse = nn.losses.MSE()
     opt = nn.optims.Adam(my_net.parameters)
     loss_history = []
@@ -83,15 +106,20 @@ def train_classification(nn):  # noqa
             super().__init__()
             self.input_dim = input_dim
             self.out_dim = out_dim
-            self.conv1 = nn.layers.Conv1d(in_features=2,
-                                          out_features=100,
-                                          kernel_size=2,
-                                          stride=1,
-                                          padding=1,
-                                          activation=nn.acts.ReLU(),
-                                          weight_initializer=nn.inits.XavierUniform(),
-                                          bias_initializer=nn.inits.Constant(0.1),
-                                          )
+            # self.conv1 = nn.layers.Conv1d(in_features=2,
+            #                               out_features=100,
+            #                               kernel_size=2,
+            #                               stride=1,
+            #                               padding=1,
+            #                               activation=nn.acts.ReLU(),
+            #                               weight_initializer=nn.inits.XavierUniform(),
+            #                               bias_initializer=nn.inits.Constant(0.1),
+            #                               )
+            self.lstm = nn.layers.LSTM(in_features=2,
+                                       hidden_size=100,
+                                       weight_initializer=nn.inits.XavierUniform(),
+                                       bias_initializer=nn.inits.Constant(0.1),
+                                       )
             self.conv2 = nn.layers.Conv1d(in_features=100,
                                           out_features=100,
                                           kernel_size=2,
@@ -107,16 +135,17 @@ def train_classification(nn):  # noqa
                                             padding=1,
                                             )
 
-            self.out = nn.layers.Dense(in_features=300,
+            self.out = nn.layers.Dense(in_features=200,
                                        out_features=1,
                                        activation=nn.acts.Sigmoid(),
                                        weight_initializer=nn.inits.HeNormal(nn.acts.ReLU())
                                        )
 
         def forward(self, x, eval=False):
+            x, h, c = x
             x = np.asarray(x)
             x = x.reshape((-1, 2, 2))
-            x = self.conv1(x)
+            x, h, c = self.lstm(x, h, c)
             x = self.conv2(x)
             x = self.maxpool(x, eval)
             x = x.reshape(x.shape[0], -1)
@@ -145,7 +174,12 @@ def train_classification(nn):  # noqa
             t[idx][0] = j
 
     my_net = MyNet(num_features, 1)
-    # my_net.summary()
+    my_net.build([np.ones((2, num_features)),
+                  np.zeros((2, 100)),
+                  np.zeros((2, 100))]
+                 )
+    my_net.summary()
+    return
     ce_loss = nn.losses.BinaryFocal(gamma=0)
     opt = nn.optims.SGD(my_net.parameters, lr=1.)
     loss_history = []
@@ -198,15 +232,13 @@ def train_classification(nn):  # noqa
 
 
 if __name__ == "__main__":
-    # import numpy_nn as nn
-    #
-    # nn.seed(123)
-    #
-    # train_regression(nn)
-    # train_classification(nn)
+    import numpy_nn as nn
 
-    import pure_nn as nn
+    nn.seed(123)
 
-    #
     train_regression(nn)
+    train_classification(nn)
+
+    # import pure_nn as nn
+    # train_regression(nn)
     # train_classification(nn)

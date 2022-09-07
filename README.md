@@ -58,6 +58,42 @@ Loss Functions:
 - Binary Focal
 - Binary Cross Entropy
 
+TensorFlow Keras Model summary Style:
+```bash
+Model Summary:
++--------------+----------------+----------+
+| Layer        | Output shape   |   Param# |
++==============+================+==========+
+| Input        | (-1, 1)        |        0 |
++--------------+----------------+----------+
+| Dense[0]     | (-1, 100)      |      200 |
++--------------+----------------+----------+
+| LayerNorm[1] | (-1, 100)      |      200 |
++--------------+----------------+----------+
+| Dropout[2]   | (-1, 100)      |        0 |
++--------------+----------------+----------+
+| Dense[3]     | (-1, 1)        |      101 |
++--------------+----------------+----------+
+total trainable parameters: 501
+
+
+Model Summary:
++-----------+----------------+----------+
+| Layer     | Output shape   |   Param# |
++===========+================+==========+
+| Input     | (-1, 2, 2)     |        0 |
++-----------+----------------+----------+
+| LSTM[0]   | (-1, 100)      |    41200 |
++-----------+----------------+----------+
+| Conv1d[1] | (-1, 3, 100)   |    20100 |
++-----------+----------------+----------+
+| Pool1d[2] | (-1, 2, 100)   |        0 |
++-----------+----------------+----------+
+| Dense[3]  | (-1, 1)        |      201 |
++-----------+----------------+----------+
+total trainable parameters: 61501
+```
+
 ## Examples
 
 Each directory contains a `train.*` that performs tests of correctness and functionality according to its corresponding format and language. You can run it to get a sense of what is going on.
