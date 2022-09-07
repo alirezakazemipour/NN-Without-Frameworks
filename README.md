@@ -58,7 +58,7 @@ Loss Functions:
 - Binary Focal
 - Binary Cross Entropy
 
-TensorFlow Keras Model summary Style:
+Model Summary in TensorFlow Keras Model Summary's Style:
 ```bash
 Model Summary:
 +--------------+----------------+----------+
